@@ -59,7 +59,7 @@ void Odometry::update()
 		reset();
 
 		//TRACE("left: %d right: %d   ",LeftSideDistance, RightSideDistance );
-		TRACE("{XYPLOT|DATA|SeriesName|%d|%d}", (int)m_coords.m_x, (int)m_coords.m_y);
+		// TRACE("{XYPLOT|DATA|SeriesName|%d|%d}", (int)m_coords.m_x, (int)m_coords.m_y);
 	}
 }
 

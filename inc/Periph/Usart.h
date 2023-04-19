@@ -16,8 +16,8 @@ namespace Usarts {
 enum Enum : uint8_t {
 	Usart1 = 0,
 	Usart2,
-	/*
 	Usart3,
+	/*
 	Uart4,
 	Uart5,
 	Usart6,
@@ -57,6 +57,7 @@ public:
 extern "C" {
 void USART1_IRQHandler(void);
 void USART2_IRQHandler(void);
+void USART3_IRQHandler(void);
 }
 
 #endif /* PERIPH_USART_H_ */

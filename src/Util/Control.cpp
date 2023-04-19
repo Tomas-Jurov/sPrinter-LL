@@ -234,7 +234,7 @@ void Control::run()
 		update();
 		//TRACE("%d %d %d %d\n", m_encoders[2].getAngularSpeedInScale(), m_encoders[3].getAngularSpeedInScale(), m_encoders[4].getAngularSpeedInScale(), m_encoders[5].getAngularSpeedInScale());
 	}
-
+	TRACE("Ferko Mrkvicka\r\n");
 	updateEngines();
 
 	updateEncoders();

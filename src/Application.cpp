@@ -27,7 +27,7 @@ Application::ApplicationInitializator::ApplicationInitializator(Application *par
 Application::Application() :
 	m_applicationInitializator(this),
 	logger(&usartLog),
-	usartLog(Periph::Usarts::Usart1, 9600),
+	usartLog(Periph::Usarts::Usart3, 9600),
 	m_appRunningLed(Periph::Leds::Blue),
 	i2c(Periph::I2Cs::I2Cx2)
 {}

@@ -50,6 +50,17 @@ struct {
 				gpioAf: GPIO_AF_USART2,
 				usart: USART2,
 				irqn: USART2_IRQn
+		},
+		/* Usart3 */ {
+				gpio: GPIOD,
+				ahb1Gpio: RCC_AHB1Periph_GPIOD,
+				rx: GPIO_Pin_9,
+				tx: GPIO_Pin_8,
+				rxSource: GPIO_PinSource9,
+				txSource: GPIO_PinSource8,
+				gpioAf: GPIO_AF_USART3,
+				usart: USART3,
+				irqn: USART3_IRQn
 		}
 };
 
@@ -61,6 +72,9 @@ void Usart::initRcc()
 		break;
 	case Usarts::Usart2:
 		RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
+		break;
+	case Usarts::Usart3:
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
 		break;
 
 	default: break;
@@ -272,3 +286,21 @@ void USART2_IRQHandler(void)
 	}
 }
 
+void USART3_IRQHandler(void)
+{
+	if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET) {
+		Periph::s_readQueues[2].enqueue(static_cast<uint8_t>(USART_ReceiveData(USART3)));
+	}
+
+	if(USART_GetITStatus(USART3, USART_IT_TXE) != RESET) {
+		Container::OperationResult<volatile uint8_t> writeData = Periph::s_writeQueues[2].dequeue();
+
+		if(writeData.isValid) { // We have more data in the buffer
+			USART_SendData(USART3, writeData.value);
+		}
+		else {
+			Periph::s_states.resetFlag(Periph::States::Writing << Periph::Usarts::Usart3);
+			USART_ITConfig(USART3, USART_IT_TXE, DISABLE);
+		}
+	}
+}
