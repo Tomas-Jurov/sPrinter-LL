@@ -10,16 +10,16 @@
 #include "Util/State.h"
 #include <Util/Trace.h>
 
-namespace Periph {
-static Container::Queue<volatile uint8_t, 512> s_readQueues[Usarts::Size];
-static Container::Queue<volatile uint8_t, 512> s_writeQueues[Usarts::Size];
+#define RX_BUFFER_SIZE               1024
+#define TX_BUFFER_SIZE               1024
 
-namespace States {
-enum Flags : uint8_t {
-	Writing = 0x01
-};
-}
-static Util::State<uint8_t> s_states;
+namespace Periph {
+static volatile char rx_buffer[RX_BUFFER_SIZE];
+static volatile char tx_buffer[TX_BUFFER_SIZE];
+static volatile int rx_buffer_head = 0;
+static volatile int rx_buffer_tail = 0;
+static volatile int tx_buffer_head = 0;
+static volatile int tx_buffer_tail = 0;
 
 struct {
 	GPIO_TypeDef *gpio;
@@ -29,28 +29,6 @@ struct {
 	USART_TypeDef *usart;
 	IRQn irqn;
 } constexpr config[Usarts::Size] = {
-		/* Usart1 */ {
-				gpio: GPIOA,
-				ahb1Gpio: RCC_AHB1Periph_GPIOA,
-				rx: GPIO_Pin_9,
-				tx: GPIO_Pin_10,
-				rxSource: GPIO_PinSource9,
-				txSource: GPIO_PinSource10,
-				gpioAf: GPIO_AF_USART1,
-				usart: USART1,
-				irqn: USART1_IRQn
-		},
-		/* Usart2 */ {
-				gpio: GPIOD,
-				ahb1Gpio: RCC_AHB1Periph_GPIOD,
-				rx: GPIO_Pin_6,
-				tx: GPIO_Pin_5,
-				rxSource: GPIO_PinSource6,
-				txSource: GPIO_PinSource5,
-				gpioAf: GPIO_AF_USART2,
-				usart: USART2,
-				irqn: USART2_IRQn
-		},
 		/* Usart3 */ {
 				gpio: GPIOD,
 				ahb1Gpio: RCC_AHB1Periph_GPIOD,
@@ -67,12 +45,6 @@ struct {
 void Usart::initRcc()
 {
 	switch(id) {
-	case Usarts::Usart1:
-		RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
-		break;
-	case Usarts::Usart2:
-		RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
-		break;
 	case Usarts::Usart3:
 		RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
 		break;
@@ -144,163 +116,60 @@ Usart::~Usart()
 	NVIC_DisableIRQ(config[id].irqn);
 }
 
-bool Usart::write(const uint8_t c)
+size_t Usart::write(const uint8_t *buffer, uint16_t length)
 {
-	if(!s_states.flag(States::Writing << id)) {
-		s_states.setFlag(States::Writing << id);
+  int i;
 
-		USART_SendData(config[id].usart, static_cast<uint16_t>(c));
-		USART_ITConfig(config[id].usart, USART_IT_TXE, ENABLE);
-	}
-	else if(!s_writeQueues[id].enqueue(c))
-		return false;
-
-	return true;
-}
-
-bool Usart::write(const char c[])
-{
-	while(*c) {
-		if(!write(*c++))
-			return false;
+	for (i = 0; i < length; i++) 
+  {
+    Periph::tx_buffer[Periph::tx_buffer_head] = buffer[i];
+    Periph::tx_buffer_head = (Periph::tx_buffer_head + 1) % TX_BUFFER_SIZE; 
+    USART_ITConfig(USART3, USART_IT_TXE, ENABLE);
 	}
 
-	return true;
+  return i;
 }
 
-bool Usart::write(const uint8_t *c, uint32_t size)
+
+
+size_t Usart::read(uint8_t *buffer, uint16_t length)
 {
-	for(uint32_t n = 0; n < size; n++) {
-		if(!write(c[n]))
-			return false;
+  int i;
+	for(i = 0; i < length; i++)
+  {
+    if (Periph::rx_buffer_head == Periph::rx_buffer_tail)
+    {
+      break;
+    }
+    buffer[i] = Periph::rx_buffer[Periph::rx_buffer_tail];
+    Periph::rx_buffer_tail = (Periph::rx_buffer_tail + 1) % RX_BUFFER_SIZE; 
 	}
-
-	return true;
+	return i;
 }
 
-
-uint8_t Usart::read()
-{
-	Container::OperationResult<volatile uint8_t> readResult;
-
-	while(!(readResult = s_readQueues[id].dequeue()).isValid) {}
-
-	return readResult.value;
-}
-
-uint16_t Usart::readWord()
-{
-	uint8_t buff[2];
-
-	for(uint8_t n = 0; n < 2; n++) {
-		buff[n] = read();
-	}
-
-	return (uint16_t)(buff[1]<<8 | buff[0]);
-}
-
-uint32_t Usart::readLine(uint8_t *buffer, uint32_t maxSize)
-{
-	for(uint32_t n = 0; n < maxSize; n++) {
-		buffer[n] = read();
-
-		if(buffer[n] == '\n')
-			return n +1;
-	}
-
-	return maxSize;
-}
-
-uint32_t Usart::readBytesUntil(uint8_t character, uint8_t *buffer, uint32_t maxSize)
-{
-	for(uint32_t n = 0; n < maxSize; n++) {
-		buffer[n] = read();
-
-		if(buffer[n] == character)
-			return n;
-	}
-	return maxSize;
-}
-
-uint32_t Usart::readBytes(uint8_t *buffer, uint32_t maxSize)
-{
-	for(uint32_t n = 0; n < maxSize; n++) {
-		buffer[n] = read();
-	}
-	return maxSize;
-}
-
-bool Usart::Available() const
-{
-	return !s_readQueues[id].isEmpty();
-}
-
-uint32_t Usart::bytesAvailable() const
-{
-	uint32_t volume = s_readQueues[id].size();
-//	DTRACE("Uart bytes available : %d \r\n", volume);
-
-	return volume;
-}
 
 } /* namespace Periph */
 
-void USART1_IRQHandler(void)
-{
-//	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET) {
-//		Periph::s_readQueues[0].enqueue(static_cast<uint8_t>(USART_ReceiveData(USART1)));
-//	}
-	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET) {
-		Periph::s_readQueues[0].enqueue(static_cast<uint8_t>(USART_ReceiveData(USART1)));
-	}
-
-	if(USART_GetITStatus(USART1, USART_IT_TXE) != RESET) {
-		Container::OperationResult<volatile uint8_t> writeData = Periph::s_writeQueues[0].dequeue();
-
-		if(writeData.isValid) { // We have more data in the buffer
-			USART_SendData(USART1, writeData.value);
-		}
-		else {
-			Periph::s_states.resetFlag(Periph::States::Writing << Periph::Usarts::Usart1);
-			USART_ITConfig(USART1, USART_IT_TXE, DISABLE);
-		}
-	}
-}
-
-void USART2_IRQHandler(void)
-{
-	if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET) {
-		Periph::s_readQueues[1].enqueue(static_cast<uint8_t>(USART_ReceiveData(USART2)));
-	}
-
-	if(USART_GetITStatus(USART2, USART_IT_TXE) != RESET) {
-		Container::OperationResult<volatile uint8_t> writeData = Periph::s_writeQueues[1].dequeue();
-
-		if(writeData.isValid) { // We have more data in the buffer
-			USART_SendData(USART2, writeData.value);
-		}
-		else {
-			Periph::s_states.resetFlag(Periph::States::Writing << Periph::Usarts::Usart2);
-			USART_ITConfig(USART2, USART_IT_TXE, DISABLE);
-		}
-	}
-}
-
 void USART3_IRQHandler(void)
 {
-	if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET) {
-		Periph::s_readQueues[2].enqueue(static_cast<uint8_t>(USART_ReceiveData(USART3)));
+	if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET) 
+  {
+    Periph::rx_buffer[Periph::rx_buffer_head] = USART_ReceiveData(USART3);
+    Periph::rx_buffer_head = (Periph::rx_buffer_head + 1) % RX_BUFFER_SIZE;
+    USART_ClearITPendingBit(USART3, USART_IT_RXNE);
 	}
 
-	if(USART_GetITStatus(USART3, USART_IT_TXE) != RESET) {
-		Container::OperationResult<volatile uint8_t> writeData = Periph::s_writeQueues[2].dequeue();
-
-		if(writeData.isValid) { // We have more data in the buffer
-			USART_SendData(USART3, writeData.value);
-		}
-		else {
-			Periph::s_states.resetFlag(Periph::States::Writing << Periph::Usarts::Usart3);
+	if(USART_GetITStatus(USART3, USART_IT_TXE) != RESET) 
+  {
+    if (Periph::tx_buffer_head!=Periph::tx_buffer_tail)
+    {
+      USART_SendData(USART3, Periph::tx_buffer[Periph::tx_buffer_tail]);
+      Periph::tx_buffer_tail = (Periph::tx_buffer_tail + 1) % TX_BUFFER_SIZE;
+    }
+		else 
+    {
 			USART_ITConfig(USART3, USART_IT_TXE, DISABLE);
 		}
+    USART_ClearITPendingBit(USART3, USART_IT_TXE);
 	}
 }
