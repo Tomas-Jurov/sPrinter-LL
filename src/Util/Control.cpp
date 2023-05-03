@@ -100,8 +100,8 @@ Control::Control():
 	m_stepper1(Periph::Steppers::Stepper1),
 	m_stepper2(Periph::Steppers::Stepper2),
 	m_timer(Util::Time::FromMilliSeconds(100)),
-	m_watchdog(Util::Time::FromMilliSeconds(100)),
-	rfModule(Periph::Usarts::Usart3, 9600),
+	m_watchdog(Util::Time::FromMilliSeconds(1)),
+	rfModule(Periph::Usarts::Usart3, 230400),
 	odometry(m_encoders)
 
 {
@@ -230,11 +230,14 @@ void Control::run()
 {
 
 	if(m_timer.run()) {
+
 		update();
+
 		//TRACE("%d %d %d %d\n", m_encoders[2].getAngularSpeedInScale(), m_encoders[3].getAngularSpeedInScale(), m_encoders[4].getAngularSpeedInScale(), m_encoders[5].getAngularSpeedInScale());
 	}
-	const char msg[] = "Ferko Mrkvicka\r\n";
-	rfModule.write((const uint8_t*)msg,sizeof(msg));
+
+
+
 	updateEngines();
 
 	updateEncoders();
@@ -340,13 +343,20 @@ void Control::updateVehicleData()
 	}
 	else left_speed = 0;
 
+	right_speed = 80;
+	left_speed = 80;
+	setLeftSideDirection(Periph::Dirs::Forward);
+	setRightSideDirection(Periph::Dirs::Forward);
 	setRightSideSpeed(tool.clamp(right_speed, 0, 80));
 	setLeftSideSpeed(tool.clamp(left_speed, 0, 80));
 }
 
 void Control::update()
 {
-	if(!(ctrlData.state) || m_disconnectedTime >= 10){		//main STOP button on Joystick
+	const char msg[] = "Ferko Mrkvicka\r\n";
+	rfModule.write((const uint8_t*)msg,sizeof(msg));
+	updateVehicleData();
+	/*if(!(ctrlData.state) || m_disconnectedTime >= 10){		//main STOP button on Joystick
 		stop();
 		//TRACE("DISCONNECTED\r\n");
 	}
@@ -357,7 +367,7 @@ void Control::update()
 		else if(s_mode == sunTracker_mode) updateSunTrackerData();
 		else if(s_mode == printing_mode) updatePrintingData();
 		else if(s_mode == simulation_mode) updateSimulation();
-	}
+	}*/
 }
 
 

@@ -15,7 +15,6 @@
 #include "Util/Control.h"
 #include "Periph/Encoder.h"
 #include "Util/Pid.h"
-#include "Periph/I2C.h"
 
 
 class Application {
