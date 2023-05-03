@@ -103,7 +103,6 @@ void Adc::initRCC()
 
 	if(config[id].adc == ADC1) {
 		rccAdc = RCC_APB2Periph_ADC1;
-		TRACE("ADC clock OK\n\r");
 	}
 	else if(config[id].adc == ADC2)
 		rccAdc = RCC_APB2Periph_ADC2;

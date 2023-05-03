@@ -102,8 +102,6 @@ Encoder::Encoder(EncoderPins::Enum a_id):
 	initNvic();
 	m_timer.start();
 	reset();
-
-	TRACE("Encoder init OK\n\r");
 }
 
 void Encoder::initGpio()

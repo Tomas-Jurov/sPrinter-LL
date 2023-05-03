@@ -11,8 +11,6 @@
 #include "Periph/Encoder.h"
 #include "stm32f4xx.h"
 
-LOGGER_MODULE(Application)
-
 Application *Application::m_instance = nullptr;
 
 Util::PidArgs_t pidArgs;
@@ -26,17 +24,13 @@ Application::ApplicationInitializator::ApplicationInitializator(Application *par
 
 Application::Application() :
 	m_applicationInitializator(this),
-	logger(&usartLog),
-	usartLog(Periph::Usarts::Usart3, 9600),
-	m_appRunningLed(Periph::Leds::Blue),
-	i2c(Periph::I2Cs::I2Cx2)
+	m_appRunningLed(Periph::Leds::Blue)
 {}
 
 
 void Application::run()
 
 {
-	INF_LOG("Application started running.");
 
 	m_appRunningLed.turnOn();
 	Util::Timer timer(Util::Time::FromMilliSeconds(100));
@@ -87,7 +81,6 @@ void Application::run()
 		}
 
 	}
-	INF_LOG("Application ended.");
 }
 
 Application *Application::instance()

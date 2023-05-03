@@ -10,7 +10,6 @@
 
 #include "stm32f4xx.h"
 #include "Periph/Led.h"
-#include "Util/Logger.h"
 #include "Periph/Engine.h"
 #include "Periph/Servo.h"
 #include "Util/Control.h"
@@ -29,10 +28,7 @@ class Application {
 
 
 public:
-	Util::Logger logger;
-	Periph::Usart usartLog;
 	Util::Control ctrl;
-	Periph::I2C i2c;
 
 private:
 	Periph::Led m_appRunningLed;

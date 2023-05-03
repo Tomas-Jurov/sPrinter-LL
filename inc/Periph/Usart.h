@@ -9,7 +9,7 @@
 #define PERIPH_USART_H_
 
 #include "stm32f4xx.h"
-
+#include <cstdio>
 namespace Periph {
 
 namespace Usarts {
@@ -31,7 +31,7 @@ public:
 	Usart(Usarts::Enum id, uint32_t baudRate);
 	~Usart();
 
-  size_t write(const uint8_t *buffer, uint16_t length);
+	size_t write(const uint8_t *buffer, uint16_t length);
 
 	size_t read(uint8_t *buffer, uint16_t length);
 };
