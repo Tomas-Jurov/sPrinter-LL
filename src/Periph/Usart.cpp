@@ -98,8 +98,9 @@ void Usart::initNvic()
 	NVIC_Init(&nvicInitStruct);
 }
 
-Usart::Usart(Usarts::Enum id, uint32_t baudRate) :
-		id(id)
+Usart::Usart(Usarts::Enum id, uint32_t baudRate) 
+: id(id)
+, current_time_()
 {
 	initRcc();
 	initGpio();
@@ -113,9 +114,14 @@ Usart::~Usart()
 	NVIC_DisableIRQ(config[id].irqn);
 }
 
-size_t Usart::write(const uint8_t *buffer, uint16_t length)
+ssize_t Usart::write(const uint8_t *buffer, uint16_t length)
 {
   int i;
+
+  if (!buffer || length <= 0)
+  {
+    return 0;
+  }
 
 	for (i = 0; i < length; i++) 
   {
@@ -129,21 +135,39 @@ size_t Usart::write(const uint8_t *buffer, uint16_t length)
 
 
 
-size_t Usart::read(uint8_t *buffer, uint16_t length)
+ssize_t Usart::read(uint8_t *buffer, uint16_t length)
 {
-  int i;
-	for(i = 0; i < length; i++)
+  int32_t read_bytes = 0;
+  if (!buffer || length <= 0)
   {
-    if (Periph::rx_buffer_head == Periph::rx_buffer_tail)
-    {
-      break;
-    }
-    buffer[i] = Periph::rx_buffer[Periph::rx_buffer_tail];
-    Periph::rx_buffer_tail = (Periph::rx_buffer_tail + 1) % RX_BUFFER_SIZE; 
-	}
-	return i;
+    return read_bytes;
+  }
+
+  unsigned long start,end;
+  start = Get_Micros();
+  end = start;
+
+  unsigned long read_bytes_iteration;
+  unsigned long i = 0;
+  while (getElapsedTime(start,end) < timeout_micro_s_ && read_bytes < (int32_t)length)
+  {
+      if(Periph::rx_buffer_head == Periph::rx_buffer_tail)
+      {
+        buffer[i] = Periph::rx_buffer[Periph::rx_buffer_tail];
+        Periph::rx_buffer_tail = (Periph::rx_buffer_tail + 1) % RX_BUFFER_SIZE; 
+      }
+      read_bytes += 1;
+      end = Get_Micros();
+      read_bytes_iteration = 0;
+  }
+
+	return read_bytes;
 }
 
+inline unsigned long Usart::getElapsedTime(const unsigned long start, const unsigned long end)
+{
+  return (unsigned long)(end-start);
+}
 
 } /* namespace Periph */
 

@@ -10,6 +10,7 @@
 
 #include "stm32f4xx.h"
 #include <cstdio>
+#include "Periph/SysTickCounter.h"
 namespace Periph {
 
 namespace Usarts {
@@ -31,9 +32,14 @@ public:
 	Usart(Usarts::Enum id, uint32_t baudRate);
 	~Usart();
 
-	size_t write(const uint8_t *buffer, uint16_t length);
+	ssize_t write(const uint8_t *buffer, uint16_t length);
 
-	size_t read(uint8_t *buffer, uint16_t length);
+	ssize_t read(uint8_t *buffer, uint16_t length);
+
+  unsigned long getElapsedTime(const unsigned long start, const unsigned long end);
+private:  
+	Periph::SysTickCounter current_time_;
+  static constexpr unsigned long timeout_micro_s_ = 50000;
 };
 
 } /* namespace Periph */

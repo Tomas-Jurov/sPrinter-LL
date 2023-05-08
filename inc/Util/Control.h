@@ -22,6 +22,7 @@
 #include "Util/Odometry.h"
 #include "Util/Pid.h"
 #include "Periph/EngineGroup.h"
+#include "../inc/ROSBridge/ros_bridge.h"
 
 
 #define	JOYSTICK_MIDDLE		100
@@ -80,6 +81,7 @@ class Control {
 	Util::Timer 	m_watchdog;
 	Util::Tool 	tool;
 	Util::Odometry	odometry;
+  ROSBridge ros_bridge;
 
 	uint32_t 	m_disconnectedTime = 0;
 	bool 		m_state = true;
@@ -93,13 +95,12 @@ public:
 	Control();
 	~Control();
 
-	Periph::Usart rfModule;
 	void update();
 	void run();
 	void stop();
 	void start();
 
-	void updateVehicleData();
+	void updateVehicleData(int8_t right_speed, int8_t left_speed);
 	void updatePrintingData();
 	void updateSunTrackerData();
 	void updateSimulation();

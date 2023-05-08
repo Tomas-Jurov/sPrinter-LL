@@ -100,9 +100,8 @@ Control::Control():
 	m_stepper2(Periph::Steppers::Stepper2),
 	m_timer(Util::Time::FromMilliSeconds(100)),
 	m_watchdog(Util::Time::FromMilliSeconds(1)),
-	rfModule(Periph::Usarts::Usart3, 230400),
-	odometry(m_encoders)
-
+	odometry(m_encoders),
+  ros_bridge()
 {
 
 	m_watchdog.start();
@@ -318,55 +317,51 @@ void Control::updatePrintingData()
 	else 	m_stepper1.softwareDisable();
 }
 
-void Control::updateVehicleData()
+void Control::updateVehicleData(int8_t right_speed, int8_t left_speed)
 {
-	int8_t right_speed =0, left_speed =0;
+  if (right_speed > 0)
+  {
+	  setRightSideDirection(Periph::Dirs::Forward);
+  }
+  else
+  {
+	  setRightSideDirection(Periph::Dirs::Backward);
+  }
 
-	if(ctrlData.x > (JOYSTICK_MIDDLE + JOYSTICK_TRESHOLD)){
-		setRightSideDirection(Periph::Dirs::Backward);
-		right_speed = ctrlData.x - JOYSTICK_MIDDLE;
-	}
-	else if(ctrlData.x < (JOYSTICK_MIDDLE - JOYSTICK_TRESHOLD)){
-		setRightSideDirection(Periph::Dirs::Forward);
-		right_speed = JOYSTICK_MIDDLE - ctrlData.x;
-	}
-	else right_speed = 0;
-
-	if(ctrlData.y > (JOYSTICK_MIDDLE + JOYSTICK_TRESHOLD)){
-		setLeftSideDirection(Periph::Dirs::Backward);
-		left_speed = ctrlData.y - JOYSTICK_MIDDLE;
-	}
-	else if(ctrlData.y < (JOYSTICK_MIDDLE - JOYSTICK_TRESHOLD)){
-		setLeftSideDirection(Periph::Dirs::Forward);
-		left_speed = JOYSTICK_MIDDLE - ctrlData.y;
-	}
-	else left_speed = 0;
-
-	right_speed = 80;
-	left_speed = 80;
-	setLeftSideDirection(Periph::Dirs::Forward);
-	setRightSideDirection(Periph::Dirs::Forward);
+  if (left_speed > 0)
+  {
+	  setLeftSideDirection(Periph::Dirs::Forward);
+  }
+  else
+  {
+	  setLeftSideDirection(Periph::Dirs::Backward);
+  }
 	setRightSideSpeed(tool.clamp(right_speed, 0, 80));
 	setLeftSideSpeed(tool.clamp(left_speed, 0, 80));
 }
 
 void Control::update()
 {
-	const char msg[] = "Ferko Mrkvicka\r\n";
-	rfModule.write((const uint8_t*)msg,sizeof(msg));
-	updateVehicleData();
-	/*if(!(ctrlData.state) || m_disconnectedTime >= 10){		//main STOP button on Joystick
-		stop();
-		//TRACE("DISCONNECTED\r\n");
-	}
-	else if(dataOK){
-		start();
+  ros_bridge.recieveCommands();
+  auto recieved_data = ros_bridge.getRecieved();
+  if (recieved_data.command == 0)
+  {
+	  updateVehicleData(recieved_data.diff_drive.right_speed, recieved_data.diff_drive.left_speed);
+  }
+  ros_bridge.setReturns();
+  ros_bridge.sendReturns();
+	// if(!(ctrlData.state) || m_disconnectedTime >= 10){		//main STOP button on Joystick
+	// 	stop();
+	// 	//TRACE("DISCONNECTED\r\n");
+	// }
+	// else if(dataOK){
+	// 	start();
 
-		if(s_mode == vehicle_mode) updateVehicleData();
-		else if(s_mode == sunTracker_mode) updateSunTrackerData();
-		else if(s_mode == printing_mode) updatePrintingData();
-		else if(s_mode == simulation_mode) updateSimulation();
-	}*/
+	// 	if(s_mode == vehicle_mode) updateVehicleData();
+	// 	else if(s_mode == sunTracker_mode) updateSunTrackerData();
+	// 	else if(s_mode == printing_mode) updatePrintingData();
+	// 	else if(s_mode == simulation_mode) updateSimulation();
+	// }
 }
 
 
