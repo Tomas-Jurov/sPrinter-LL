@@ -5,7 +5,6 @@
  *      Author: xgallom
  */
 
-#include <Util/Trace.h>
 #include "Application.h"
 #include "Util/Timer.h"
 #include "Periph/Encoder.h"

@@ -8,7 +8,6 @@
 #include "Periph/Usart.h"
 #include "Container/Queue.h"
 #include "Util/State.h"
-#include <Util/Trace.h>
 
 #define RX_BUFFER_SIZE               1024
 #define TX_BUFFER_SIZE               1024

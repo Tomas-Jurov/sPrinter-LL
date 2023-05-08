@@ -8,7 +8,6 @@
 #include "Util/Pid.h"
 #include <stdlib.h>
 #include <string.h>
-#include "Util/Trace.h"
 
 namespace Util {
 

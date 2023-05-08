@@ -5,7 +5,6 @@
  *      Author: Zahorack
  */
 
-#include <Util/Trace.h>
 #include "Util/Control.h"
 #include "Application.h"
 #include "Util/Timer.h"

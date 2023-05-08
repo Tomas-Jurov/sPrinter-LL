@@ -8,7 +8,6 @@
 //https://stackoverflow.com/questions/47488228/stm32-adc-interrupt
 
 #include "Periph/Adc.h"
-#include "Util/Trace.h"
 
 namespace Periph {
 

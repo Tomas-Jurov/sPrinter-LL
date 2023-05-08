@@ -6,7 +6,6 @@
  */
 
 #include "Util/Odometry.h"
-#include "Util/Trace.h"
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>

@@ -7,7 +7,6 @@
 
 #include "Periph/Encoder.h"
 #include "Periph/Engine.h"
-#include "Util/Trace.h"
 #include <Periph/SysTickCounter.h>
 
 namespace Periph {

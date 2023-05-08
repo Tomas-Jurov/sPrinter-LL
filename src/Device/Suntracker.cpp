@@ -6,7 +6,6 @@
  */
 
 #include "Device/Suntracker.h"
-#include "Util/Trace.h"
 
 namespace Device {
 

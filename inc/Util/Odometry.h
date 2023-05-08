@@ -9,7 +9,6 @@
 #define ODOMETRY_H_
 
 #include "stm32f4xx.h"
-#include "Util/Trace.h"
 #include "Periph/Encoder.h"
 #include "Periph/Engine.h"
 #include "Util/Timer.h"
