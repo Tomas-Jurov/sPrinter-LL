@@ -137,31 +137,18 @@ ssize_t Usart::write(const uint8_t *buffer, uint16_t length)
 
 ssize_t Usart::read(uint8_t *buffer, uint16_t length)
 {
-  int32_t read_bytes = 0;
-  if (!buffer || length <= 0)
-  {
-    return read_bytes;
-  }
+	int i;
+	for (i=0; i < length; i++)
+	{
+		if (Periph::rx_buffer_head == Periph::rx_buffer_tail)
+		{
+			break;
+		}
 
-  unsigned long start,end;
-  start = Get_Micros();
-  end = start;
-
-  unsigned long read_bytes_iteration;
-  unsigned long i = 0;
-  while (getElapsedTime(start,end) < timeout_micro_s_ && read_bytes < (int32_t)length)
-  {
-      if(Periph::rx_buffer_head == Periph::rx_buffer_tail)
-      {
-        buffer[i] = Periph::rx_buffer[Periph::rx_buffer_tail];
-        Periph::rx_buffer_tail = (Periph::rx_buffer_tail + 1) % RX_BUFFER_SIZE; 
-      }
-      read_bytes += 1;
-      end = Get_Micros();
-      read_bytes_iteration = 0;
-  }
-
-	return read_bytes;
+		buffer[i] = Periph::rx_buffer[Periph::rx_buffer_tail];
+		Periph::rx_buffer_tail = (Periph::rx_buffer_tail + 1) % RX_BUFFER_SIZE;
+	}
+	return i;
 }
 
 inline unsigned long Usart::getElapsedTime(const unsigned long start, const unsigned long end)

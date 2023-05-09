@@ -32,3 +32,8 @@
 *.exe
 *.out
 *.app
+
+# IDEs
+.vscode/
+.settings/
+.idea/
