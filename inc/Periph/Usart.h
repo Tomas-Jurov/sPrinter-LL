@@ -26,26 +26,26 @@ class Usart {
 	void initRcc();
 	void initGpio();
 	void initUsart(uint32_t baudRate);
-	void initNvic();
 
 public:
 	Usart(Usarts::Enum id, uint32_t baudRate);
 	~Usart();
 
-	ssize_t write(const uint8_t *buffer, uint16_t length);
+	int Serial_available();
+	int Serial_read();
+	int Serial_write(const uint8_t *buffer, size_t len);
+	size_t Serial_readBytes(uint8_t *buffer, size_t length);
 
-	ssize_t read(uint8_t *buffer, uint16_t length);
+	ssize_t write(const uint8_t *buffer, size_t length);
 
-  unsigned long getElapsedTime(const unsigned long start, const unsigned long end);
+	ssize_t read(uint8_t *buffer, size_t length);
+
+	unsigned long getElapsedTime(const unsigned long start, const unsigned long end);
+
 private:  
 	Periph::SysTickCounter current_time_;
-  static constexpr unsigned long timeout_micro_s_ = 50000;
+	static constexpr unsigned long timeout_micro_s_ = 50000;
 };
 
 } /* namespace Periph */
-
-extern "C" {
-  void USART3_IRQHandler(void);
-}
-
 #endif /* PERIPH_USART_H_ */

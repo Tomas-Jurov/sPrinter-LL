@@ -7,24 +7,13 @@
 
 #include "Periph/Usart.h"
 
-#define RX_BUFFER_SIZE               1024
-#define TX_BUFFER_SIZE               1024
-
 namespace Periph {
-static volatile char rx_buffer[RX_BUFFER_SIZE];
-static volatile char tx_buffer[TX_BUFFER_SIZE];
-static volatile int rx_buffer_head = 0;
-static volatile int rx_buffer_tail = 0;
-static volatile int tx_buffer_head = 0;
-static volatile int tx_buffer_tail = 0;
-
 struct {
 	GPIO_TypeDef *gpio;
 	uint32_t ahb1Gpio;
 	uint32_t rx, tx;
 	uint8_t rxSource, txSource, gpioAf;
 	USART_TypeDef *usart;
-	IRQn irqn;
 } constexpr config[Usarts::Size] = {
 		/* Usart3 */ {
 				gpio: GPIOD,
@@ -35,7 +24,6 @@ struct {
 				txSource: GPIO_PinSource8,
 				gpioAf: GPIO_AF_USART3,
 				usart: USART3,
-				irqn: USART3_IRQn
 		}
 };
 
@@ -59,7 +47,7 @@ void Usart::initGpio()
 			GPIO_Mode: GPIO_Mode_AF,
 			GPIO_Speed: GPIO_Fast_Speed,
 			GPIO_OType: GPIO_OType_PP,
-			GPIO_PuPd: GPIO_PuPd_NOPULL
+			GPIO_PuPd: GPIO_PuPd_UP
 	};
 
 	GPIO_Init(config[id].gpio, &gpioInitStruct);
@@ -82,20 +70,6 @@ void Usart::initUsart(uint32_t baudRate)
 
 	USART_Init(config[id].usart, &usartInitStruct);
 	USART_Cmd(config[id].usart, ENABLE);
-
-	USART_ITConfig(config[id].usart, USART_IT_RXNE, ENABLE);
-}
-
-void Usart::initNvic()
-{
-	NVIC_InitTypeDef nvicInitStruct = {
-			NVIC_IRQChannel: static_cast<uint8_t>(config[id].irqn),
-			NVIC_IRQChannelPreemptionPriority: 0,
-			NVIC_IRQChannelSubPriority: 0,
-			NVIC_IRQChannelCmd: ENABLE
-	};
-
-	NVIC_Init(&nvicInitStruct);
 }
 
 Usart::Usart(Usarts::Enum id, uint32_t baudRate) 
@@ -105,51 +79,88 @@ Usart::Usart(Usarts::Enum id, uint32_t baudRate)
 	initRcc();
 	initGpio();
 	initUsart(baudRate);
-	initNvic();
 }
 
 Usart::~Usart()
 {
 	USART_Cmd(config[id].usart, DISABLE);
-	NVIC_DisableIRQ(config[id].irqn);
 }
 
-ssize_t Usart::write(const uint8_t *buffer, uint16_t length)
+int Usart::Serial_available()
 {
-  int i;
+	return USART_GetFlagStatus(config[id].usart, USART_FLAG_RXNE) ? 1 : 0;
+}
 
-  if (!buffer || length <= 0)
-  {
-    return 0;
-  }
-
-	for (i = 0; i < length; i++) 
-  {
-    Periph::tx_buffer[Periph::tx_buffer_head] = buffer[i];
-    Periph::tx_buffer_head = (Periph::tx_buffer_head + 1) % TX_BUFFER_SIZE; 
-    USART_ITConfig(USART3, USART_IT_TXE, ENABLE);
-	}
-
-  return i;
+int Usart::Serial_read()
+{
+	while (!Serial_available());
+	return USART_ReceiveData(config[id].usart);
 }
 
 
-
-ssize_t Usart::read(uint8_t *buffer, uint16_t length)
+size_t Usart::Serial_readBytes(uint8_t *buffer, size_t length)
 {
-	int i;
-	for (i=0; i < length; i++)
+    size_t count = 0;
+    while (count < length)
+    {
+        while (!Serial_available());
+        buffer[count] = USART_ReceiveData(config[id].usart);
+        count++;
+    }
+    return count;
+}
+
+int Usart::Serial_write(const uint8_t *buffer, size_t len)
+{
+	int i = 0;
+    for (; i < len; i++)
+    {
+        while (!USART_GetFlagStatus(config[id].usart, USART_FLAG_TXE));
+        USART_SendData(config[id].usart, buffer[i]);
+    }
+    return i;
+}
+
+ssize_t Usart::read(uint8_t *buffer, size_t length){
+	ssize_t read_bytes = 0;
+	if (!buffer || length <= 0)
 	{
-		if (Periph::rx_buffer_head == Periph::rx_buffer_tail)
-		{
-			break;
-		}
-
-		buffer[i] = Periph::rx_buffer[Periph::rx_buffer_tail];
-		Periph::rx_buffer_tail = (Periph::rx_buffer_tail + 1) % RX_BUFFER_SIZE;
+		return read_bytes;
 	}
-	return i;
+
+	unsigned long start,end;
+	start = Get_Micros();
+	end = start;
+	unsigned long read_bytes_iteration;
+	while (getElapsedTime(start,end) < timeout_micro_s_ && read_bytes < (ssize_t)length)
+	{
+		if(Serial_available()>0){
+			if (!(read_bytes_iteration = Serial_readBytes(buffer + read_bytes,(unsigned long)(length - read_bytes))))
+			{
+				return -1;
+			}
+		}
+		read_bytes += read_bytes_iteration;
+		end = Get_Micros();
+		read_bytes_iteration = 0;
+	}
+	return read_bytes;
 }
+
+ssize_t Usart::write(const uint8_t *buffer, size_t length)
+{
+	if (!buffer || length <= 0)
+	{
+		return 0;
+	}
+	unsigned long bytesWritten;
+	if (!(bytesWritten = Serial_write(buffer,(unsigned long)length)))
+	{
+		return -1;
+	}
+	return bytesWritten;
+}
+
 
 inline unsigned long Usart::getElapsedTime(const unsigned long start, const unsigned long end)
 {
@@ -157,27 +168,3 @@ inline unsigned long Usart::getElapsedTime(const unsigned long start, const unsi
 }
 
 } /* namespace Periph */
-
-void USART3_IRQHandler(void)
-{
-	if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET) 
-  {
-    Periph::rx_buffer[Periph::rx_buffer_head] = USART_ReceiveData(USART3);
-    Periph::rx_buffer_head = (Periph::rx_buffer_head + 1) % RX_BUFFER_SIZE;
-    USART_ClearITPendingBit(USART3, USART_IT_RXNE);
-	}
-
-	if(USART_GetITStatus(USART3, USART_IT_TXE) != RESET) 
-  {
-    if (Periph::tx_buffer_head!=Periph::tx_buffer_tail)
-    {
-      USART_SendData(USART3, Periph::tx_buffer[Periph::tx_buffer_tail]);
-      Periph::tx_buffer_tail = (Periph::tx_buffer_tail + 1) % TX_BUFFER_SIZE;
-    }
-		else 
-    {
-			USART_ITConfig(USART3, USART_IT_TXE, DISABLE);
-		}
-    USART_ClearITPendingBit(USART3, USART_IT_TXE);
-	}
-}
