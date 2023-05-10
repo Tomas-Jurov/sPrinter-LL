@@ -23,6 +23,7 @@
 #include "Util/Pid.h"
 #include "Periph/EngineGroup.h"
 #include "../inc/ROSBridge/ros_bridge.h"
+#include <cmath>
 
 
 #define	JOYSTICK_MIDDLE		100

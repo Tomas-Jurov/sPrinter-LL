@@ -336,8 +336,8 @@ void Control::updateVehicleData(int8_t right_speed, int8_t left_speed)
   {
 	  setLeftSideDirection(Periph::Dirs::Backward);
   }
-	setRightSideSpeed(tool.clamp(right_speed, 0, 80));
-	setLeftSideSpeed(tool.clamp(left_speed, 0, 80));
+	setRightSideSpeed(tool.clamp(abs(right_speed), 0, 80));
+	setLeftSideSpeed(tool.clamp(abs(left_speed), 0, 80));
 }
 
 void Control::update()

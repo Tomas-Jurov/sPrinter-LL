@@ -44,7 +44,7 @@ public:
 
 private:  
 	Periph::SysTickCounter current_time_;
-	static constexpr unsigned long timeout_micro_s_ = 50000;
+	static constexpr unsigned long timeout_micro_s_ = 5000000;
 };
 
 } /* namespace Periph */

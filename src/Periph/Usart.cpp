@@ -122,29 +122,11 @@ int Usart::Serial_write(const uint8_t *buffer, size_t len)
 }
 
 ssize_t Usart::read(uint8_t *buffer, size_t length){
-	ssize_t read_bytes = 0;
-	if (!buffer || length <= 0)
-	{
-		return read_bytes;
+	while (USART_GetFlagStatus(USART3, USART_FLAG_RXNE) == SET) {
+	  USART_ClearFlag(USART3, USART_FLAG_RXNE);
+	  uint8_t dummy_data = USART3->DR; /* Read data register to clear RXNE flag */
 	}
-
-	unsigned long start,end;
-	start = Get_Micros();
-	end = start;
-	unsigned long read_bytes_iteration;
-	while (getElapsedTime(start,end) < timeout_micro_s_ && read_bytes < (ssize_t)length)
-	{
-		if(Serial_available()>0){
-			if (!(read_bytes_iteration = Serial_readBytes(buffer + read_bytes,(unsigned long)(length - read_bytes))))
-			{
-				return -1;
-			}
-		}
-		read_bytes += read_bytes_iteration;
-		end = Get_Micros();
-		read_bytes_iteration = 0;
-	}
-	return read_bytes;
+	return Serial_readBytes(buffer, (unsigned long)(length));
 }
 
 ssize_t Usart::write(const uint8_t *buffer, size_t length)
