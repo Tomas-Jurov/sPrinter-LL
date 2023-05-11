@@ -7,6 +7,7 @@ sprinter::SerialCore::SerialCore()
 
 bool sprinter::SerialCore::readRecieved(sprinter::Recieved *data)
 {
+  serial_port_->flushRead();
   return readDataFromROS((bytePtr)data);
 }
 

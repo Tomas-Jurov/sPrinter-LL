@@ -121,11 +121,16 @@ int Usart::Serial_write(const uint8_t *buffer, size_t len)
     return i;
 }
 
-ssize_t Usart::read(uint8_t *buffer, size_t length){
-	while (USART_GetFlagStatus(USART3, USART_FLAG_RXNE) == SET) {
-	  USART_ClearFlag(USART3, USART_FLAG_RXNE);
-	  uint8_t dummy_data = USART3->DR; /* Read data register to clear RXNE flag */
+void Usart::flushRead()
+{
+	while (USART_GetFlagStatus(config[id].usart, USART_FLAG_RXNE) == SET)
+	{
+		USART_ClearFlag(config[id].usart, USART_FLAG_RXNE);
+		uint8_t dummy_data = config[id].usart->DR; /* Read data register to clear RXNE flag */
 	}
+}
+
+ssize_t Usart::read(uint8_t *buffer, size_t length){
 	return Serial_readBytes(buffer, (unsigned long)(length));
 }
 

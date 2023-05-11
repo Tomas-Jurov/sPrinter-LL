@@ -35,6 +35,7 @@ public:
 	int Serial_read();
 	int Serial_write(const uint8_t *buffer, size_t len);
 	size_t Serial_readBytes(uint8_t *buffer, size_t length);
+	void flushRead();
 
 	ssize_t write(const uint8_t *buffer, size_t length);
 
