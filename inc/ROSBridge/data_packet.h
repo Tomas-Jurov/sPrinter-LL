@@ -56,6 +56,13 @@ namespace sprinter
   {
     unsigned short command : 8;
     SpeedOfWheels diff_drive;
+    int8_t lin_speed;
+    int16_t stepper1_speed;
+    int16_t stepper2_speed;
+    int32_t stepper1_target;
+    int32_t stepper2_target;
+    int16_t servo1_angle;
+    int16_t servo2_angle;
   } __attribute__((packed));
 
 } // namespace sprinter

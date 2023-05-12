@@ -41,6 +41,39 @@ bool sprinter::SerialCore::readDataFromROS(bytePtr data)
 	  padding = sizeof(SpeedOfWheels);
 	  expected_data_size = sizeof(int8_t);
   }
+  else if (data_packet.header.command == 0x02)
+  {
+	  padding = sizeof(SpeedOfWheels) + sizeof(int8_t);
+	  expected_data_size = sizeof(int16_t);
+  }
+  else if (data_packet.header.command == 0x03)
+  {
+	  padding = sizeof(SpeedOfWheels) + sizeof(int8_t) + sizeof(int16_t);
+	  expected_data_size = sizeof(int16_t);
+  }
+  else if (data_packet.header.command == 0x04)
+  {
+	  padding = sizeof(SpeedOfWheels) + sizeof(int8_t) + sizeof(int16_t) + sizeof(int16_t);
+	  expected_data_size = sizeof(int32_t);
+  }
+  else if (data_packet.header.command == 0x05)
+  {
+	  padding = sizeof(SpeedOfWheels) + sizeof(int8_t) + sizeof(int16_t) + sizeof(int16_t) + sizeof(int32_t);
+	  expected_data_size = sizeof(int32_t);
+  }
+  else if (data_packet.header.command == 0x06)
+  {
+	  padding = sizeof(SpeedOfWheels) + sizeof(int8_t) + sizeof(int16_t) + sizeof(int16_t) + sizeof(int32_t)
+			  + sizeof(int32_t);
+	  expected_data_size = sizeof(int16_t);
+  }
+  else if (data_packet.header.command == 0x07)
+  {
+	  padding = sizeof(SpeedOfWheels) + sizeof(int8_t) + sizeof(int16_t) + sizeof(int16_t) + sizeof(int32_t)
+			  + sizeof(int32_t) + sizeof(int16_t);
+	  expected_data_size = sizeof(int16_t);
+  }
+
   size_t read_data_bytes = serial_port_->read(data_packet.messsage + header_size, data_size + crc_size); 
 
   if (read_data_bytes < (data_size + crc_size) || expected_data_size != data_size || (read_data_bytes - crc_size) != expected_data_size)
@@ -62,7 +95,7 @@ bool sprinter::SerialCore::readDataFromROS(bytePtr data)
     return 1;
   }
 
-  memcpy((bytePtr)data, data_packet.messsage + sizeof(uint8_t) + sizeof(uint16_t), sizeof(uint8_t));
+  memcpy((bytePtr)data, data_packet.messsage + header_size - sizeof(uint8_t), sizeof(uint8_t));
   memcpy((bytePtr)data + sizeof(uint8_t) + padding, data_packet.messsage + header_size, data_size);
 
   return 0;
