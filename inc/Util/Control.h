@@ -73,6 +73,8 @@ class Control {
 		Util::Pid(&m_pidArgs), Util::Pid(&m_pidArgs), Util::Pid(&m_pidArgs)
 	};
 
+	Periph::EngineGroup m_rightEngines, m_leftEngines;
+	Periph::EncoderGroup m_rightEncoders, m_leftEncoders;
 	Periph::Servo 	m_servo1, m_servo2;
 	Periph::Stepper m_stepper1, m_stepper2;
 	Util::Packet 	m_packet;
@@ -81,8 +83,8 @@ class Control {
 	Util::Timer	m_timer;
 	Util::Timer 	m_watchdog;
 	Util::Tool 	tool;
-	Util::Odometry	odometry;
-  ROSBridge ros_bridge;
+	Util::Odometry m_odometry;
+	ROSBridge m_ros_bridge;
 
 	uint32_t 	m_disconnectedTime = 0;
 	bool 		m_state = true;

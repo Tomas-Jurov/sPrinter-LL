@@ -58,7 +58,7 @@ public:
 	void start();
 	void freeRun();	/*asynchronics run*/
 
-	bool isBussy(){ return (getTargetSteps() > getCurrentSteps()); };
+	bool isBusy(){ return (getTargetSteps() > getCurrentSteps()); };
 
 	void setSpeed(uint16_t);
 	void setTargetSteps(uint32_t steps);

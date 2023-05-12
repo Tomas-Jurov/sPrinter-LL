@@ -30,12 +30,12 @@ static Pwms::Enum enginesToPwms(Engines::Enum id)
 
 static Dirs::Enum pinToDirection(bool pinState)
 {
-	return pinState ? Dirs::Backward : Dirs::Forward;
+	return pinState ? Dirs::Forward : Dirs::Backward;
 }
 
 static bool directionToPin(Dirs::Enum direction)
 {
-	return direction == Dirs::Backward ? true : false;
+	return direction == Dirs::Forward ? true : false;
 }
 
 Engine::Engine(Engines::Enum id) :

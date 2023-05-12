@@ -115,7 +115,7 @@ void Stepper::run()
 
 void Stepper::update()
 {
-	if(isBussy()){
+	if(isBusy()){
 		m_step.togglePin();
 		m_currentSteps++;
 	}

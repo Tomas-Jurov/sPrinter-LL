@@ -49,6 +49,7 @@ public:
 	bool isRunning() const;
 
 	void setTargetAngle(uint16_t angle);
+	void setCurrentAngle(uint16_t angle);
 	uint16_t getCurrentAngle() const;
 	uint16_t getTargetAngle() const;
 	void addAngle(int16_t angle);

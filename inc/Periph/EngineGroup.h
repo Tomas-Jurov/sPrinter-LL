@@ -26,9 +26,9 @@ enum Flags {
 }
 
 class EngineGroup {
-	static const uint8_t Size = 3;
+	static const uint8_t NumOfEngines = 3;
 
-	Engine *m_engines[Size];
+	Engine *m_engines[3];
 
 public:
 	EngineGroup(Engine *engine1, Engine *engine2, Engine *engine3);

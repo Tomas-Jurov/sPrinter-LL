@@ -30,7 +30,7 @@ Util::State<uint16_t> s_servoState;
  *
  */
 static constexpr uint16_t  s_servoConstatnt = 500;	 	//first acceptable value in us
-static constexpr uint16_t  s_servoHomePosition = s_servoConstatnt + 1000;
+static constexpr uint16_t  s_servoHomePosition = s_servoConstatnt + 1135;
 static constexpr uint16_t  s_servoMaxPosition = s_servoConstatnt + 2000;
 static constexpr uint16_t  s_servoMinPosition = s_servoConstatnt;
 
@@ -85,6 +85,12 @@ uint16_t Servo::getTargetAngle() const
 void Servo::addAngle(int16_t angle){
 	if(getCurrentAngle() + angle < s_servoMaxPosition && getCurrentAngle() + angle > s_servoMinPosition){
 		m_pwm.write(servosToPwms(id), getCurrentAngle() + angle);
+	}
+}
+
+void Servo::setCurrentAngle(uint16_t angle){
+	if(angle < s_servoMaxPosition && angle > s_servoMinPosition){
+		m_pwm.write(servosToPwms(id), angle);
 	}
 }
 

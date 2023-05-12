@@ -56,7 +56,7 @@ static uint16_t findMaxIntensity()
 	return max;
 }
 
-void Suntracker::update()
+bool Suntracker::update()
 {
 	const uint8_t Step = 3;
 	int16_t DirServo1, DirServo2;
@@ -66,6 +66,7 @@ void Suntracker::update()
 
 		if(Intensity[Kvadrants::O] + FinnalPrecisionOffset > findMaxIntensity()) {
 			//TRACE("Suntracker calibration OK\n\r");
+			return true;
 		}
 		else {
 			if((Intensity[Kvadrants::I] + Intensity[Kvadrants::IV]) + PrecisionOffset >

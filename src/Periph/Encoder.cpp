@@ -16,7 +16,7 @@ static const uint16_t EncoderImpulsMaxDealy 	= 700;
 static const uint32_t EncoderAngleOnePick  	= 6;
 static const uint32_t FullCircleAngle 		= 360;
 
-static const float Circumference = 2 * 3.14 * WheelRadius;
+static const float Circumference = 2 * 3.141592654 * WheelRadius;
 static const float OnePickDistance = (Circumference / FullCircleAngle) * EncoderAngleOnePick;
 
 typedef struct {

@@ -82,33 +82,37 @@ void Control::updateSimulation()
 //	m_stepper2.setSpeed(ctrlData.pot);
 
 	if(task == up || task == down){
-		if(!m_stepper1.isBussy()){
+		if(!m_stepper1.isBusy()){
 			taskManager(nextTask());
 		}
 	}
 	else if(task == right || task == left){
-		if(!m_stepper2.isBussy())
+		if(!m_stepper2.isBusy())
 			taskManager(nextTask());
 	}
 
 }
 
 Control::Control():
+	m_rightEngines(&m_engines[0], &m_engines[1], &m_engines[2]),
+	m_leftEngines(&m_engines[3], &m_engines[4], &m_engines[5]),
+	m_rightEncoders(&m_encoders[0], &m_encoders[2], nullptr, 2),		// currently, only these encoders are working
+	m_leftEncoders(&m_encoders[4], &m_encoders[5], nullptr, 2),		// normally, there should be 3 encoders for each side
 	m_servo1(Periph::Servos::Servo1),
 	m_servo2(Periph::Servos::Servo2),
 	m_stepper1(Periph::Steppers::Stepper1),
 	m_stepper2(Periph::Steppers::Stepper2),
 	m_timer(Util::Time::FromMilliSeconds(100)),
 	m_watchdog(Util::Time::FromMilliSeconds(1)),
-	odometry(m_encoders),
-  ros_bridge()
+	m_odometry(m_encoders),
+	m_ros_bridge()
 {
 
 	m_watchdog.start();
 	m_timer.start();
-	m_servo2.start();
-	m_servo2.addAngle(60);   //korekcia pociatocnej polohy
-	stop();
+//	m_servo1.setTargetAngle(500);
+//	m_servo2.setTargetAngle(500);
+//	stop();
 }
 
 Control::~Control(){
@@ -118,21 +122,22 @@ Control::~Control(){
 
 void Control::setRightSideSpeed(uint8_t speed)
 {
-	m_engines[0].setCurrentSpeed(m_pids[0].process(speed, m_encoders[0].getAngularSpeedInScale()));
-	m_engines[1].setCurrentSpeed(m_pids[1].process(speed, m_encoders[1].getAngularSpeedInScale()));
-	m_engines[2].setCurrentSpeed(m_pids[2].process(speed, m_encoders[2].getAngularSpeedInScale()));
+//	m_engines[0].setCurrentSpeed(m_pids[0].process(speed, m_encoders[0].getAngularSpeedInScale()));
+//	m_engines[1].setCurrentSpeed(m_pids[1].process(speed, m_encoders[1].getAngularSpeedInScale()));
+//	m_engines[2].setCurrentSpeed(m_pids[2].process(speed, m_encoders[2].getAngularSpeedInScale()));
 
 //	m_engines[0].setCurrentSpeed(speed);
 //	m_engines[1].setCurrentSpeed(speed);
 //	m_engines[2].setCurrentSpeed(speed);
+	m_rightEngines.setTargetSpeed(m_pids[0].process(speed, m_rightEncoders.getAngularSpeedInScale()));
 }
 
 void Control::setLeftSideSpeed(uint8_t speed)
 {
 
-	m_engines[3].setCurrentSpeed(m_pids[3].process(speed, m_encoders[3].getAngularSpeedInScale()));
-	m_engines[4].setCurrentSpeed(m_pids[4].process(speed, m_encoders[4].getAngularSpeedInScale()));
-	m_engines[5].setCurrentSpeed(m_pids[5].process(speed, m_encoders[5].getAngularSpeedInScale()));
+//	m_engines[3].setCurrentSpeed(m_pids[3].process(speed, m_encoders[3].getAngularSpeedInScale()));
+//	m_engines[4].setCurrentSpeed(m_pids[4].process(speed, m_encoders[4].getAngularSpeedInScale()));
+//	m_engines[5].setCurrentSpeed(m_pids[5].process(speed, m_encoders[5].getAngularSpeedInScale()));
 
 //	m_engines[3].setCurrentSpeed(speed);
 //	m_engines[4].setCurrentSpeed(speed);
@@ -141,20 +146,24 @@ void Control::setLeftSideSpeed(uint8_t speed)
 	//m_engines[5].setCurrentSpeed(30);
 	//TRACE("u: %d s: %d y: %d period:%d \n\r",speed, s, y, m_encoders[1].getPeriod());
 	//TRACE("p1: %d  p2:%d  pid:%d\n\r", m_encoders[3].getAngularSpeedInScale(), speed, pid);
+
+	m_leftEngines.setTargetSpeed(m_pids[3].process(speed, m_leftEncoders.getAngularSpeedInScale()));
 }
 
 void Control::setRightSideDirection(Periph::Dirs::Enum dir)
 {
-	m_engines[0].setCurrentDirection(dir);
-	m_engines[1].setCurrentDirection(dir);
-	m_engines[2].setCurrentDirection(dir);
+//	m_engines[0].setCurrentDirection(dir);
+//	m_engines[1].setCurrentDirection(dir);
+//	m_engines[2].setCurrentDirection(dir);
+	m_rightEngines.setTargetDirection(dir);
 }
 
 void Control::setLeftSideDirection(Periph::Dirs::Enum dir)
 {
-	m_engines[3].setCurrentDirection(dir);
-	m_engines[4].setCurrentDirection(dir);
-	m_engines[5].setCurrentDirection(dir);
+//	m_engines[3].setCurrentDirection(dir);
+//	m_engines[4].setCurrentDirection(dir);
+//	m_engines[5].setCurrentDirection(dir);
+	m_leftEngines.setTargetDirection(dir);
 }
 
 void Control::stopEngines()
@@ -169,13 +178,13 @@ void Control::stopEngines()
 
 void Control::updateEngines()
 {
-//	m_engines[0].update();
-//	m_engines[1].update();
-//	m_engines[2].update();
-//	m_engines[3].update();
-//	m_engines[4].update();
-//	m_engines[5].update();
-//	m_engines[6].update();
+	m_engines[0].update();
+	m_engines[1].update();
+	m_engines[2].update();
+	m_engines[3].update();
+	m_engines[4].update();
+	m_engines[5].update();
+	m_engines[6].update();
 }
 
 void Control::updateEncoders()
@@ -240,7 +249,7 @@ void Control::run()
 
 	updateEncoders();
 
-	odometry.update();
+	m_odometry.update();
 
 	m_suntracker.update();
 
@@ -342,14 +351,14 @@ void Control::updateVehicleData(int8_t right_speed, int8_t left_speed)
 
 void Control::update()
 {
-  ros_bridge.recieveCommands();
-  auto recieved_data = ros_bridge.getRecieved();
-  if (recieved_data.command == 0)
-  {
-	  updateVehicleData(recieved_data.diff_drive.right_speed, recieved_data.diff_drive.left_speed);
-  }
-  ros_bridge.setReturns();
-  ros_bridge.sendReturns();
+//  m_ros_bridge.recieveCommands();
+//  auto recieved_data = ros_bridge.getRecieved();
+//  if (recieved_data.command == 0)
+//  {
+//	  updateVehicleData(recieved_data.diff_drive.right_speed, recieved_data.diff_drive.left_speed);
+//  }
+//  m_ros_bridge.setReturns();
+//  m_ros_bridge.sendReturns();
 	// if(!(ctrlData.state) || m_disconnectedTime >= 10){		//main STOP button on Joystick
 	// 	stop();
 	// 	//TRACE("DISCONNECTED\r\n");
@@ -362,6 +371,8 @@ void Control::update()
 	// 	else if(s_mode == printing_mode) updatePrintingData();
 	// 	else if(s_mode == simulation_mode) updateSimulation();
 	// }
+//	m_servo1.test();
+//	m_servo2.test();
 }
 
 

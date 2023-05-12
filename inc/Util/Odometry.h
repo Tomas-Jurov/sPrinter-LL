@@ -10,6 +10,7 @@
 
 #include "stm32f4xx.h"
 #include "Periph/Encoder.h"
+#include "Periph/EncoderGroup.h"
 #include "Periph/Engine.h"
 #include "Util/Timer.h"
 #include "Localisation/Coordinates.h"
@@ -19,7 +20,7 @@ namespace Util {
 //TODO: gyroskop fusion
 
 class Odometry {
-	Periph::Encoder m_leftEncoder, m_rightEncoder;
+	Periph::EncoderGroup m_leftEncoders, m_rightEncoders;
 
 	Localisation::Coordinates m_coords;
 

@@ -27,8 +27,8 @@ static float degToRad(float deg)
 }
 
 Odometry::Odometry(Periph::Encoder (&Encoders)[6]):
-		m_leftEncoder(Encoders[1]),
-		m_rightEncoder(Encoders[5]),
+		m_leftEncoders(&Encoders[0], &Encoders[2], nullptr, 2),
+		m_rightEncoders(&Encoders[4], &Encoders[5], nullptr, 2),
 
 		m_timer(Util::Time::FromMilliSeconds(1000))	//diskutabilne, kedy updatovat?
 {
@@ -45,16 +45,16 @@ void Odometry::update()
 //	lastLeftSideDistance += m_leftEncoder.getDistance();
 //	lastRightSideDistance += m_rightEncoder.getDistance();
 
-	m_leftEncoder.update();
-	m_rightEncoder.update();
+	m_leftEncoders.update();
+	m_rightEncoders.update();
 
 	if(m_timer.run()) {
-		int32_t LeftSideDistance  = m_leftEncoder.getDistance();	//Wheels in the middle
-		int32_t RightSideDistance = m_rightEncoder.getDistance();
+		int32_t leftSideDistance = m_leftEncoders.getDistance();
+		int32_t rightSideDistance = m_rightEncoders.getDistance();
 
 		//TRACE("L: %d  R: %d\n\r", m_leftEncoder.getAngularSpeedInScale(), m_rightEncoder.getAngularSpeedInScale());
 
-		m_coords.add(computeNewCoords(LeftSideDistance, RightSideDistance));	// Update position from start
+		m_coords.add(computeNewCoords(leftSideDistance, rightSideDistance));	// Update position from start
 		reset();
 
 		//TRACE("left: %d right: %d   ",LeftSideDistance, RightSideDistance );
@@ -90,8 +90,8 @@ Localisation::Coordinates Odometry::getLocation()
 
 void Odometry::reset()
 {
-	m_leftEncoder.reset();
-	m_rightEncoder.reset();
+	m_leftEncoders.reset();
+	m_rightEncoders.reset();
 }
 
 }

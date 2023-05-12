@@ -49,7 +49,7 @@ class Suntracker {
 public:
 	Suntracker();
 
-	void update();
+	bool update();
 
 };
 
