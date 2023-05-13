@@ -11,19 +11,7 @@
 
 namespace Util {
 
-ControlData ctrlData;
-
-enum modes : uint8_t{
-  vehicle_mode = 0,
-  sunTracker_mode,
-  printing_mode,
-  simulation_mode,
-
-  modes_size
-  };
-
 static 	uint8_t s_mode = 0x00;
-static  bool dataOK = false;
 
 static constexpr uint8_t KVADRANT_OFFSET = 70;
 
@@ -104,7 +92,6 @@ Control::Control():
 	m_stepper2(Periph::Steppers::Stepper2),
 	m_timer(Util::Time::FromMilliSeconds(100)),
 	m_watchdog(Util::Time::FromMilliSeconds(1)),
-	m_odometry(m_encoders),
 	m_ros_bridge()
 {
 
@@ -200,8 +187,7 @@ void Control::updateEncoders()
 void Control::switchMode()
 {
 	stop();
-	s_mode = ctrlData.mode;
-
+	
 //	if(s_mode == simulation_mode) {
 //		m_stepper1.setSpeed(20);
 //		m_stepper2.setSpeed(20);
@@ -220,7 +206,6 @@ void Control::stop()
 	m_servo1.stop();
 	m_servo2.stop();
 
-	m_state = false;
 }
 
 void Control::start()
@@ -230,7 +215,6 @@ void Control::start()
 	m_servo1.start();
 	m_servo2.start();
 
-	m_state = true;
 }
 
 void Control::run()
@@ -249,84 +233,56 @@ void Control::run()
 
 	updateEncoders();
 
-	m_odometry.update();
-
 	m_suntracker.update();
 
-	if(s_mode == printing_mode){
-		m_stepper1.freeRun();
-		m_stepper2.freeRun();
+	// if(s_mode == printing_mode){
+	// 	m_stepper1.freeRun();
+	// 	m_stepper2.freeRun();
 
-		task = right;
-		m_stepper1.setTargetSteps(0);
-		m_stepper2.setTargetSteps(0);
-	}
-	else if(s_mode == simulation_mode){
-		m_stepper1.run();
-		m_stepper2.run();
+	// 	task = right;
+	// 	m_stepper1.setTargetSteps(0);
+	// 	m_stepper2.setTargetSteps(0);
+	// }
+	// else if(s_mode == simulation_mode){
+	// 	m_stepper1.run();
+	// 	m_stepper2.run();
 
-	}
-	else  {
+	// }
+	// else  {
 		m_stepper1.stop();
 		m_stepper2.stop();
-	}
+	// }
 
-	if(m_watchdog.run()){
-		m_disconnectedTime++;
-	}
+	// if(m_watchdog.run()){
+	// 	m_disconnectedTime++;
+	// }
 
 }
 
-void Control::updateSunTrackerData()
-{
-	uint8_t sensitivity = ctrlData.pot;
-	m_engines[6].setTargetSpeed(0);
+// void Control::updatePrintingData()
+// {
+// 	if(ctrlData.x > (JOYSTICK_MIDDLE + KVADRANT_OFFSET)){
+// 		m_stepper2.softwareEnable();
+// 		m_stepper2.setCurrentDirection(Periph::Dirs::Backward);
+// 	}
+// 	else if(ctrlData.x < (JOYSTICK_MIDDLE - KVADRANT_OFFSET)){
+// 		m_stepper2.softwareEnable();
+// 		m_stepper2.setCurrentDirection(Periph::Dirs::Forward);
+// 	}
+// 	else 	m_stepper2.softwareDisable();
 
-	if(ctrlData.button_left){
-		m_engines[6].setTargetSpeed(sensitivity);
+// 	if(ctrlData.y > (JOYSTICK_MIDDLE + KVADRANT_OFFSET)){
+// 		m_stepper1.softwareEnable();
+// 		m_stepper1.setCurrentDirection(Periph::Dirs::Forward);
+// 	}
+// 	else if(ctrlData.y < (JOYSTICK_MIDDLE - KVADRANT_OFFSET)){
+// 		m_stepper1.softwareEnable();
+// 		m_stepper1.setCurrentDirection(Periph::Dirs::Backward);
+// 	}
+// 	else 	m_stepper1.softwareDisable();
+// }
 
-		if(m_engines[6].getCurrentDirection() != Periph::Dirs::Backward)
-			m_engines[6].setTargetDirection(Periph::Dirs::Backward);
-	}
-
-	if(ctrlData.button_right){
-		m_engines[6].setTargetSpeed(sensitivity);
-
-		if(m_engines[6].getCurrentDirection() != Periph::Dirs::Forward)
-			m_engines[6].setTargetDirection(Periph::Dirs::Forward);
-	}
-
-	if(ctrlData.x > 90) m_servo1.incrementAngle();
-	else if(ctrlData.x < 10) m_servo1.decrementAngle();
-
-	if(ctrlData.y > 90) m_servo2.incrementAngle();
-	else if(ctrlData.y < 10) m_servo2.decrementAngle();
-}
-
-void Control::updatePrintingData()
-{
-	if(ctrlData.x > (JOYSTICK_MIDDLE + KVADRANT_OFFSET)){
-		m_stepper2.softwareEnable();
-		m_stepper2.setCurrentDirection(Periph::Dirs::Backward);
-	}
-	else if(ctrlData.x < (JOYSTICK_MIDDLE - KVADRANT_OFFSET)){
-		m_stepper2.softwareEnable();
-		m_stepper2.setCurrentDirection(Periph::Dirs::Forward);
-	}
-	else 	m_stepper2.softwareDisable();
-
-	if(ctrlData.y > (JOYSTICK_MIDDLE + KVADRANT_OFFSET)){
-		m_stepper1.softwareEnable();
-		m_stepper1.setCurrentDirection(Periph::Dirs::Forward);
-	}
-	else if(ctrlData.y < (JOYSTICK_MIDDLE - KVADRANT_OFFSET)){
-		m_stepper1.softwareEnable();
-		m_stepper1.setCurrentDirection(Periph::Dirs::Backward);
-	}
-	else 	m_stepper1.softwareDisable();
-}
-
-void Control::updateVehicleData(int8_t right_speed, int8_t left_speed)
+void Control::setWheelsVelocity(int8_t right_speed, int8_t left_speed)
 {
   if (right_speed > 0)
   {
@@ -351,22 +307,57 @@ void Control::updateVehicleData(int8_t right_speed, int8_t left_speed)
 
 void Control::update()
 {
-//  m_ros_bridge.recieveCommands();
-//  auto recieved_data = ros_bridge.getRecieved();
-//  if (recieved_data.command == 0)
-//  {
-//	  updateVehicleData(recieved_data.diff_drive.right_speed, recieved_data.diff_drive.left_speed);
-//  }
-//  m_ros_bridge.setReturns();
-//  m_ros_bridge.sendReturns();
-	// if(!(ctrlData.state) || m_disconnectedTime >= 10){		//main STOP button on Joystick
-	// 	stop();
-	// 	//TRACE("DISCONNECTED\r\n");
-	// }
-	// else if(dataOK){
-	// 	start();
+	m_ros_bridge.recieveCommands();
+	auto recieved_data = m_ros_bridge.getRecieved();
+	if (recieved_data.command == ROSControl::Command::SET_SPEED_OF_WHEELS)
+	{
+		setWheelsVelocity(recieved_data.wheels_vel.right, recieved_data.wheels_vel.left);
+	}
+	else if (recieved_data.command == ROSControl::Command::SET_SPEED_OF_LIN_ACTUATOR)
+	{
+		recieved_data.tilt_vel < 0
+		? m_engines[6].setTargetDirection(Periph::Dirs::Forward)
+		: m_engines[6].setTargetDirection(Periph::Dirs::Backward);
+	
+		m_engines[6].setTargetSpeed(tool.clamp(abs(recieved_data.tilt_vel), 0, 80));
+	}
+	else if (recieved_data.command == ROSControl::Command::SET_STEPPER1_SPEED)
+	{
+		m_stepper1.setSpeed(recieved_data.stepper1_speed);
+	}
+	else if (recieved_data.command == ROSControl::Command::SET_STEPPER2_SPEED)
+	{
+		m_stepper2.setSpeed(recieved_data.stepper2_speed);
+	}
+	else if (recieved_data.command == ROSControl::Command::SET_STEPPER1_TARG_STEPS)
+	{
+		recieved_data.stepper1_target > 0
+			? m_stepper1.setCurrentDirection(Periph::Dirs::Forward)
+			: m_stepper1.setCurrentDirection(Periph::Dirs::Backward);
 
-	// 	if(s_mode == vehicle_mode) updateVehicleData();
+		m_stepper1.setTargetSteps(abs(recieved_data.stepper1_target));
+	}
+	else if (recieved_data.command == ROSControl::Command::SET_STEPPER2_TARG_STEPS)
+	{
+		recieved_data.stepper2_target > 0
+			? m_stepper2.setCurrentDirection(Periph::Dirs::Forward)
+			: m_stepper2.setCurrentDirection(Periph::Dirs::Backward);
+
+		m_stepper2.setTargetSteps(abs(recieved_data.stepper2_target));
+	}
+	else if (recieved_data.command == ROSControl::Command::SET_SERVO1_TARG_ANGLE)
+	{
+		m_servo1.setTargetAngle(recieved_data.servo1_angle);
+	}
+	else if (recieved_data.command == ROSControl::Command::SET_SERVO2_TARG_ANGLE)
+	{
+		m_servo2.setTargetAngle(recieved_data.servo2_angle);
+	}
+
+	m_ros_bridge.setReturns();
+	m_ros_bridge.sendReturns();
+	
+	// 	if(s_mode == vehicle_mode) setWheelsVelocity();
 	// 	else if(s_mode == sunTracker_mode) updateSunTrackerData();
 	// 	else if(s_mode == printing_mode) updatePrintingData();
 	// 	else if(s_mode == simulation_mode) updateSimulation();

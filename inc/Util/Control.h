@@ -19,28 +19,11 @@
 #include "Util/Tool.h"
 #include "Device/Suntracker.h"
 #include "Periph/Encoder.h"
-#include "Util/Odometry.h"
+#include "Periph/EncoderGroup.h"
 #include "Util/Pid.h"
 #include "Periph/EngineGroup.h"
-#include "../inc/ROSBridge/ros_bridge.h"
+#include "ROSControl/ros_bridge.h"
 #include <cmath>
-
-
-#define	JOYSTICK_MIDDLE		100
-#define	JOYSTICK_TRESHOLD	7
-
-struct ControlData{
-  uint8_t  x  	 = 0x00;
-  uint8_t  y  	 = 0x00;
-  uint8_t  pot	 = 0x00;
-  uint8_t  button_left = 0x00;
-  uint8_t  button_right= 0x00;
-  uint8_t  state   = 0x00;
-  uint8_t  mode    = 0x00;
-  uint8_t data_crc = 0x00;
-};
-
-extern ControlData ctrlData;
 
 namespace Util {
 
@@ -81,13 +64,9 @@ class Control {
 	Device::Suntracker m_suntracker;
 
 	Util::Timer	m_timer;
-	Util::Timer 	m_watchdog;
+	Util::Timer m_watchdog;
 	Util::Tool 	tool;
-	Util::Odometry m_odometry;
-	ROSBridge m_ros_bridge;
-
-	uint32_t 	m_disconnectedTime = 0;
-	bool 		m_state = true;
+	ROSControl::ROSBridge m_ros_bridge;
 
 	void setRightSideSpeed(uint8_t speed);
 	void setLeftSideSpeed(uint8_t speed);
@@ -103,9 +82,8 @@ public:
 	void stop();
 	void start();
 
-	void updateVehicleData(int8_t right_speed, int8_t left_speed);
+	void setWheelsVelocity(int8_t right_vel, int8_t left_vel);
 	void updatePrintingData();
-	void updateSunTrackerData();
 	void updateSimulation();
 	void taskManager(uint8_t task);
 
