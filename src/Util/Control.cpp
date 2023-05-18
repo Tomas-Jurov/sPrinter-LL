@@ -184,6 +184,30 @@ void Control::updateEncoders()
 	m_encoders[5].update();
 }
 
+void Control::updateState()	// doplnit prepocet na jednotky SI podla prevodovych charakteristik
+{
+	m_leftEngines.getCurrentDirection() == Periph::Dirs::Enum::Forward
+		? m_sprinter_state.left_grp_vel = m_leftEncoders.getAngularSpeed()
+		: m_sprinter_state.left_grp_vel = -m_leftEncoders.getAngularSpeed();
+
+	m_rightEngines.getCurrentDirection() == Periph::Dirs::Enum::Forward
+		? m_sprinter_state.right_grp_vel = m_rightEncoders.getAngularSpeed()
+		: m_sprinter_state.right_grp_vel = -m_rightEncoders.getAngularSpeed();
+
+	m_stepper1.getCurrentDirection() == Periph::Dirs::Enum::Forward
+		? m_sprinter_state.stepper1_current_steps += m_stepper1.getCurrentSteps()
+		: m_sprinter_state.stepper1_current_steps -= m_stepper1.getCurrentSteps();
+
+	m_stepper2.getCurrentDirection() == Periph::Dirs::Enum::Forward
+		? m_sprinter_state.stepper2_current_steps += m_stepper2.getCurrentSteps()
+		: m_sprinter_state.stepper2_current_steps -= m_stepper2.getCurrentSteps();
+
+	m_sprinter_state.servo1_current_angle = m_servo1.getCurrentAngle();
+	m_sprinter_state.servo2_current_angle = m_servo2.getCurrentAngle();
+
+	m_sprinter_state.suntracker_done = true;	// TODO
+}
+
 void Control::switchMode()
 {
 	stop();
@@ -305,10 +329,11 @@ void Control::setWheelsVelocity(int8_t right_speed, int8_t left_speed)
 	setLeftSideSpeed(tool.clamp(abs(left_speed), 0, 80));
 }
 
-void Control::update()
+void Control::resolveCommands()
 {
-	m_ros_bridge.recieveCommands();
 	auto recieved_data = m_ros_bridge.getRecieved();
+	
+	// doplnit prepocet z jednotiek SI podla prevodovych charakteristik
 	if (recieved_data.command == ROSControl::Command::SET_SPEED_OF_WHEELS)
 	{
 		setWheelsVelocity(recieved_data.wheels_vel.right, recieved_data.wheels_vel.left);
@@ -353,15 +378,26 @@ void Control::update()
 	{
 		m_servo2.setTargetAngle(recieved_data.servo2_angle);
 	}
+}
 
-	m_ros_bridge.setReturns();
-	m_ros_bridge.sendReturns();
+void Control::update()
+{
+//	m_ros_bridge.recieveCommands();
+//	resolveCommands();
+
+//	updateState(); // TODO: where?
+//	m_ros_bridge.setReturns(m_sprinter_state);
+//	m_ros_bridge.sendReturns();
 	
 	// 	if(s_mode == vehicle_mode) setWheelsVelocity();
 	// 	else if(s_mode == sunTracker_mode) updateSunTrackerData();
 	// 	else if(s_mode == printing_mode) updatePrintingData();
 	// 	else if(s_mode == simulation_mode) updateSimulation();
 	// }
+	setRightSideSpeed(30);
+	setLeftSideSpeed(80);
+	setRightSideDirection(Periph::Dirs::Backward);
+	setLeftSideDirection(Periph::Dirs::Forward);
 //	m_servo1.test();
 //	m_servo2.test();
 }

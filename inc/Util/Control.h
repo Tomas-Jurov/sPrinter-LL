@@ -67,11 +67,14 @@ class Control {
 	Util::Timer m_watchdog;
 	Util::Tool 	tool;
 	ROSControl::ROSBridge m_ros_bridge;
+	ROSControl::Returns m_sprinter_state;
 
 	void setRightSideSpeed(uint8_t speed);
 	void setLeftSideSpeed(uint8_t speed);
 	void setRightSideDirection(Periph::Dirs::Enum dir);
 	void setLeftSideDirection(Periph::Dirs::Enum dir);
+	void resolveCommands();
+	void updateState();
 
 public:
 	Control();

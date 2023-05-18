@@ -43,4 +43,10 @@ void EngineGroup::update()
 		m_engines[n]->update();
 }
 
+
+Periph::Dirs::Enum EngineGroup::getCurrentDirection() const
+{
+	return m_engines[0]->getCurrentDirection();
+}
+
 }

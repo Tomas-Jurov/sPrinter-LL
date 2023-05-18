@@ -37,8 +37,8 @@ public:
 	void stop();
 
 	void setTargetSpeed(uint8_t speed);
-
 	void setTargetDirection(Periph::Dirs::Enum direction);
+	Periph::Dirs::Enum getCurrentDirection() const;
 
 	void update();
 };

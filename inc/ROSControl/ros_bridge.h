@@ -12,7 +12,7 @@ namespace ROSControl
 
     void recieveCommands();
     void sendReturns();
-    void setReturns();
+    void setReturns(const ROSControl::Returns &sprinter_state);
 
     ROSControl::Recieved getRecieved() const;
 

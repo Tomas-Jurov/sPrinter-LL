@@ -22,14 +22,14 @@ namespace ROSControl {
   return recieved_;
   }
 
-  void ROSBridge::setReturns()
+  void ROSBridge::setReturns(const ROSControl::Returns &sprinter_state)
   {
-    returns_.left_grp_vel = 5;
-    returns_.right_grp_vel = 6;
-    returns_.servo1_current_angle = 7;
-    returns_.servo2_current_angle = 4;
-    returns_.stepper1_current_steps = 50;
-    returns_.stepper2_current_steps = 100;
-    returns_.suntracker_done = true;
+    returns_.left_grp_vel = sprinter_state.left_grp_vel;
+    returns_.right_grp_vel = sprinter_state.right_grp_vel;
+    returns_.stepper1_current_steps = sprinter_state.stepper1_current_steps;
+    returns_.stepper2_current_steps = sprinter_state.stepper2_current_steps;
+    returns_.servo1_current_angle = sprinter_state.servo1_current_angle;
+    returns_.servo2_current_angle = sprinter_state.servo2_current_angle;
+    returns_.suntracker_done = sprinter_state.suntracker_done;
   }
 }
