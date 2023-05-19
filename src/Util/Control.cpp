@@ -246,7 +246,8 @@ void Control::run()
 
 	if(m_timer.run()) {
 
-		update();
+		resolveCommands();
+		//update();
 
 		//TRACE("%d %d %d %d\n", m_encoders[2].getAngularSpeedInScale(), m_encoders[3].getAngularSpeedInScale(), m_encoders[4].getAngularSpeedInScale(), m_encoders[5].getAngularSpeedInScale());
 	}
@@ -331,8 +332,8 @@ void Control::setWheelsVelocity(int8_t right_speed, int8_t left_speed)
 
 void Control::resolveCommands()
 {
+	auto result = m_ros_bridge.recieveCommands();
 	auto recieved_data = m_ros_bridge.getRecieved();
-	
 	// doplnit prepocet z jednotiek SI podla prevodovych charakteristik
 	if (recieved_data.command == ROSControl::Command::SET_SPEED_OF_WHEELS)
 	{
@@ -394,10 +395,6 @@ void Control::update()
 	// 	else if(s_mode == printing_mode) updatePrintingData();
 	// 	else if(s_mode == simulation_mode) updateSimulation();
 	// }
-	setRightSideSpeed(30);
-	setLeftSideSpeed(80);
-	setRightSideDirection(Periph::Dirs::Backward);
-	setLeftSideDirection(Periph::Dirs::Forward);
 //	m_servo1.test();
 //	m_servo2.test();
 }

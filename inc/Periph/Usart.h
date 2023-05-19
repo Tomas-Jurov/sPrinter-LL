@@ -41,7 +41,7 @@ public:
 
 	ssize_t read(uint8_t *buffer, size_t length);
 
-	unsigned long getElapsedTime(const unsigned long start, const unsigned long end);
+	long getElapsedTime(const unsigned long start, const unsigned long end);
 
 private:  
 	Periph::SysTickCounter current_time_;

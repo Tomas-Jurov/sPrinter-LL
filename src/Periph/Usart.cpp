@@ -6,7 +6,7 @@
  */
 
 #include "Periph/Usart.h"
-
+#include <cmath>
 namespace Periph {
 struct {
 	GPIO_TypeDef *gpio;
@@ -100,14 +100,25 @@ int Usart::Serial_read()
 
 size_t Usart::Serial_readBytes(uint8_t *buffer, size_t length)
 {
-    size_t count = 0;
-    while (count < length)
+	ssize_t read_bytes = 0;
+	if (!buffer || length <= 0)
+	{
+		return read_bytes;
+	}
+
+	unsigned long start, end;
+	start = Get_Micros();
+	end = start;
+
+    while (std::abs(getElapsedTime(start,end)) < timeout_micro_s_ && read_bytes < length)
     {
-        while (!Serial_available());
-        buffer[count] = USART_ReceiveData(config[id].usart);
-        count++;
+        if (Serial_available() > 0)
+        {
+        	 buffer[read_bytes++] = USART_ReceiveData(config[id].usart);
+        }
+        end = Get_Micros();
     }
-    return count;
+    return read_bytes;
 }
 
 int Usart::Serial_write(const uint8_t *buffer, size_t len)
@@ -149,9 +160,9 @@ ssize_t Usart::write(const uint8_t *buffer, size_t length)
 }
 
 
-inline unsigned long Usart::getElapsedTime(const unsigned long start, const unsigned long end)
+inline long Usart::getElapsedTime(const unsigned long start, const unsigned long end)
 {
-  return (unsigned long)(end-start);
+  return end-start;
 }
 
 } /* namespace Periph */

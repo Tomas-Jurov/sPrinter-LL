@@ -10,7 +10,7 @@ namespace ROSControl
     ROSBridge();
     ~ROSBridge() = default;
 
-    void recieveCommands();
+    bool recieveCommands();
     void sendReturns();
     void setReturns(const ROSControl::Returns &sprinter_state);
 
