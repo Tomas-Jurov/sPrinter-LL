@@ -112,10 +112,9 @@ size_t Usart::Serial_readBytes(uint8_t *buffer, size_t length)
 
     while (std::abs(getElapsedTime(start,end)) < timeout_micro_s_ && read_bytes < length)
     {
-        if (Serial_available() > 0)
-        {
-        	 buffer[read_bytes++] = USART_ReceiveData(config[id].usart);
-        }
+    	while (!Serial_available());
+        buffer[read_bytes] = USART_ReceiveData(config[id].usart);
+        read_bytes++;
         end = Get_Micros();
     }
     return read_bytes;
@@ -142,6 +141,7 @@ void Usart::flushRead()
 }
 
 ssize_t Usart::read(uint8_t *buffer, size_t length){
+	flushRead();
 	return Serial_readBytes(buffer, (unsigned long)(length));
 }
 

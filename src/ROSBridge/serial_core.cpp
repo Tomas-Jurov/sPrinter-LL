@@ -9,7 +9,6 @@ namespace ROSControl {
 
   bool SerialCore::readRecieved(Recieved *data)
   {
-    serial_port_->flushRead();
     return readDataFromROS((bytePtr)data);
   }
 

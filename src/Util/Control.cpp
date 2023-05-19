@@ -333,51 +333,54 @@ void Control::setWheelsVelocity(int8_t right_speed, int8_t left_speed)
 void Control::resolveCommands()
 {
 	auto result = m_ros_bridge.recieveCommands();
-	auto recieved_data = m_ros_bridge.getRecieved();
-	// doplnit prepocet z jednotiek SI podla prevodovych charakteristik
-	if (recieved_data.command == ROSControl::Command::SET_SPEED_OF_WHEELS)
+	if (!result)
 	{
-		setWheelsVelocity(recieved_data.wheels_vel.right, recieved_data.wheels_vel.left);
-	}
-	else if (recieved_data.command == ROSControl::Command::SET_SPEED_OF_LIN_ACTUATOR)
-	{
-		recieved_data.tilt_vel < 0
-		? m_engines[6].setTargetDirection(Periph::Dirs::Forward)
-		: m_engines[6].setTargetDirection(Periph::Dirs::Backward);
+		auto recieved_data = m_ros_bridge.getRecieved();
+		// doplnit prepocet z jednotiek SI podla prevodovych charakteristik
+		if (recieved_data.command == ROSControl::Command::SET_SPEED_OF_WHEELS)
+		{
+			setWheelsVelocity(recieved_data.wheels_vel.right, recieved_data.wheels_vel.left);
+		}
+		else if (recieved_data.command == ROSControl::Command::SET_SPEED_OF_LIN_ACTUATOR)
+		{
+			recieved_data.tilt_vel < 0
+			? m_engines[6].setTargetDirection(Periph::Dirs::Forward)
+			: m_engines[6].setTargetDirection(Periph::Dirs::Backward);
+
+			m_engines[6].setTargetSpeed(tool.clamp(abs(recieved_data.tilt_vel), 0, 80));
+		}
+		else if (recieved_data.command == ROSControl::Command::SET_STEPPER1_SPEED)
+		{
+			m_stepper1.setSpeed(recieved_data.stepper1_speed);
+		}
+		else if (recieved_data.command == ROSControl::Command::SET_STEPPER2_SPEED)
+		{
+			m_stepper2.setSpeed(recieved_data.stepper2_speed);
+		}
+		else if (recieved_data.command == ROSControl::Command::SET_STEPPER1_TARG_STEPS)
+		{
+			recieved_data.stepper1_target > 0
+				? m_stepper1.setCurrentDirection(Periph::Dirs::Forward)
+				: m_stepper1.setCurrentDirection(Periph::Dirs::Backward);
+
+			m_stepper1.setTargetSteps(abs(recieved_data.stepper1_target));
+		}
+		else if (recieved_data.command == ROSControl::Command::SET_STEPPER2_TARG_STEPS)
+		{
+			recieved_data.stepper2_target > 0
+				? m_stepper2.setCurrentDirection(Periph::Dirs::Forward)
+				: m_stepper2.setCurrentDirection(Periph::Dirs::Backward);
 	
-		m_engines[6].setTargetSpeed(tool.clamp(abs(recieved_data.tilt_vel), 0, 80));
-	}
-	else if (recieved_data.command == ROSControl::Command::SET_STEPPER1_SPEED)
-	{
-		m_stepper1.setSpeed(recieved_data.stepper1_speed);
-	}
-	else if (recieved_data.command == ROSControl::Command::SET_STEPPER2_SPEED)
-	{
-		m_stepper2.setSpeed(recieved_data.stepper2_speed);
-	}
-	else if (recieved_data.command == ROSControl::Command::SET_STEPPER1_TARG_STEPS)
-	{
-		recieved_data.stepper1_target > 0
-			? m_stepper1.setCurrentDirection(Periph::Dirs::Forward)
-			: m_stepper1.setCurrentDirection(Periph::Dirs::Backward);
-
-		m_stepper1.setTargetSteps(abs(recieved_data.stepper1_target));
-	}
-	else if (recieved_data.command == ROSControl::Command::SET_STEPPER2_TARG_STEPS)
-	{
-		recieved_data.stepper2_target > 0
-			? m_stepper2.setCurrentDirection(Periph::Dirs::Forward)
-			: m_stepper2.setCurrentDirection(Periph::Dirs::Backward);
-
-		m_stepper2.setTargetSteps(abs(recieved_data.stepper2_target));
-	}
-	else if (recieved_data.command == ROSControl::Command::SET_SERVO1_TARG_ANGLE)
-	{
-		m_servo1.setTargetAngle(recieved_data.servo1_angle);
-	}
-	else if (recieved_data.command == ROSControl::Command::SET_SERVO2_TARG_ANGLE)
-	{
-		m_servo2.setTargetAngle(recieved_data.servo2_angle);
+			m_stepper2.setTargetSteps(abs(recieved_data.stepper2_target));
+		}
+		else if (recieved_data.command == ROSControl::Command::SET_SERVO1_TARG_ANGLE)
+		{
+			m_servo1.setTargetAngle(recieved_data.servo1_angle);
+		}
+		else if (recieved_data.command == ROSControl::Command::SET_SERVO2_TARG_ANGLE)
+		{
+			m_servo2.setTargetAngle(recieved_data.servo2_angle);
+		}
 	}
 }
 
