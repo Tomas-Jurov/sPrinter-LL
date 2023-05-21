@@ -3,7 +3,7 @@
 namespace ROSControl {
 
   SerialCore::SerialCore()
-  : serial_port_(std::make_unique<Periph::Usart>(Periph::Usarts::Usart3, 230400))
+  : serial_port_(std::make_unique<ROSControl::ROSSerial>())
   {
   }
 

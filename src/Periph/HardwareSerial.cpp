@@ -5,7 +5,7 @@
  *      Author: xgallom
  */
 
-#include <HardwareSerial.h>
+#include "../../inc/Periph/HardwareSerial.h"
 #include <cmath>
 static volatile uint16_t rx_buffer_head_;
 static volatile uint16_t rx_buffer_tail_;
@@ -147,6 +147,11 @@ size_t HardwareSerial::write(const uint8_t *buffer, size_t size)
 		else break;
 	}
 	return n;
+}
+
+int HardwareSerial::avaiable(void)
+{
+	return ((unsigned int)(SERIAL_RX_BUFFER_SIZE + rx_buffer_head_ - rx_buffer_tail_)) % SERIAL_RX_BUFFER_SIZE;
 }
 
 inline long HardwareSerial::getElapsedTime(const unsigned long start, const unsigned long end)

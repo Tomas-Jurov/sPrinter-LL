@@ -12,6 +12,7 @@
 
 #include "stm32f4xx.h"
 #include "SysTickCounter.h"
+#include <cstddef>
 
 namespace Periph {
 
