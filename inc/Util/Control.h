@@ -8,9 +8,9 @@
 #ifndef UTIL_CONTROL_H_
 #define UTIL_CONTROL_H_
 
+#include <Periph/HardwareSerial.h>
 #include "stm32f4xx.h"
 #include "Periph/Engine.h"
-#include "Periph/Usart.h"
 #include "Periph/Servo.h"
 #include "Periph/Stepper.h"
 #include "Periph/Adc.h"
