@@ -41,6 +41,7 @@ namespace ROSControl
 			end = Get_Micros();
 			read_bytes_iteration = 0;
 		}
+		return read_bytes;
 	}
 
 	ssize_t ROSSerial::write(const uint8_t *buffer, size_t size)
@@ -57,6 +58,32 @@ namespace ROSControl
 		}
 
 		return bytesWritten;
+	}
+
+	int ROSSerial::flushRead()
+	{
+		char dummy;
+		while (getChar(&dummy) == 1)
+			;
+		return 0;
+	}
+
+	ssize_t ROSSerial::getChar(char *c)
+	{
+		if (!c)
+		{
+			return 0;
+		}
+
+		unsigned long bytesRead = 0;
+		if(Serial.avaiable()>0){
+			if (!(bytesRead = Serial.readBytes((uint8_t *)c, 1)))
+			{
+				return -1;
+			}
+		}
+
+		return (ssize_t)bytesRead;
 	}
 
 	inline long ROSSerial::getElapsedTime(const unsigned long start, const unsigned long end)

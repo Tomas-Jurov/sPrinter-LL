@@ -8,6 +8,7 @@
 #include "Util/Control.h"
 #include "Application.h"
 #include "Util/Timer.h"
+#include <string>
 
 namespace Util {
 
@@ -243,13 +244,10 @@ void Control::start()
 
 void Control::run()
 {
-
 	if(m_timer.run()) {
 
 		resolveCommands();
 		//update();
-
-		//TRACE("%d %d %d %d\n", m_encoders[2].getAngularSpeedInScale(), m_encoders[3].getAngularSpeedInScale(), m_encoders[4].getAngularSpeedInScale(), m_encoders[5].getAngularSpeedInScale());
 	}
 
 
@@ -333,6 +331,7 @@ void Control::setWheelsVelocity(int8_t right_speed, int8_t left_speed)
 void Control::resolveCommands()
 {
 	auto result = m_ros_bridge.recieveCommands();
+
 	if (!result)
 	{
 		auto recieved_data = m_ros_bridge.getRecieved();
@@ -375,11 +374,11 @@ void Control::resolveCommands()
 		}
 		else if (recieved_data.command == ROSControl::Command::SET_SERVO1_TARG_ANGLE)
 		{
-			m_servo1.setTargetAngle(recieved_data.servo1_angle);
+			m_servo1.setCurrentAngle(recieved_data.servo1_angle);
 		}
 		else if (recieved_data.command == ROSControl::Command::SET_SERVO2_TARG_ANGLE)
 		{
-			m_servo2.setTargetAngle(recieved_data.servo2_angle);
+			m_servo2.setCurrentAngle(recieved_data.servo2_angle);
 		}
 	}
 }

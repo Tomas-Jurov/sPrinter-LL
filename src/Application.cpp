@@ -30,10 +30,7 @@ Application::Application() :
 void Application::run()
 
 {
-
 	m_appRunningLed.turnOn();
-	Util::Timer timer(Util::Time::FromMilliSeconds(100));
-	timer.start();
 
 	pidArgs.Kd = 0.005;
 	pidArgs.Ki = 3;
@@ -59,25 +56,6 @@ void Application::run()
 //
 //		engine2.setCurrentDirection(Periph::Dirs::Forward);
 //		engine2.setCurrentSpeed(50);
-
-		if(timer.run()) {
-
-			//uint8_t pidresult = pid.process(70, encoder.getAngularSpeedInScale());
-
-			//TRACE("%d", encoder.getAngularSpeedInScale());
-			//TRACE(" ");
-			//TRACE("%d\n\r", encoder.getCounter());
-			//TRACE(" ");
-
-
-
-			static uint32_t cnt =0;
-			cnt++;
-			if(cnt > 100) {
-				//TRACE("angular speed: %d  period: %d  ticks: %d \n\r", encoder.getAngularSpeed(), encoder.getPeriod(), encoder.getCounter());
-				cnt = 0;
-			}
-		}
 
 	}
 }

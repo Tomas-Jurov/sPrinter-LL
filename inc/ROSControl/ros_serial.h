@@ -20,6 +20,8 @@ namespace ROSControl
 		~ROSSerial() = default;
 		ssize_t read(uint8_t *buffer, size_t size);
 		ssize_t write(const uint8_t *buffer, size_t size);
+		ssize_t getChar(char *c);
+		int flushRead();
 	private:
 		long getElapsedTime(const unsigned long start, const unsigned long end);
 	private:
