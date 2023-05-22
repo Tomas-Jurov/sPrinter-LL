@@ -201,8 +201,6 @@ void Control::run()
 	if(m_timer.run()) {
 
 		update();
-		char txt[] = "Fe";
-				Serial.write((uint8_t *)txt, sizeof(txt));
 	}
 
 	updateEngines();
@@ -325,10 +323,10 @@ void Control::resolveCommands()
 void Control::update()
 {
 	resolveCommands();
-	updateState();
 
-	//m_ros_bridge.setReturns(m_sprinter_state);
-	//m_ros_bridge.sendReturns();
+	updateState();
+	m_ros_bridge.setReturns(m_sprinter_state);
+	m_ros_bridge.sendReturns();
 }
 
 

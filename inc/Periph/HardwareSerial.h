@@ -29,7 +29,6 @@ public:
 
 	int avaiable(void);
 	int read(void);
-	size_t write(uint8_t);
 	size_t write(const uint8_t *buffer, size_t size);
 	size_t readBytes(uint8_t *buffer, size_t length);
 	int timedRead();

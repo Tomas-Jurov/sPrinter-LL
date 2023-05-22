@@ -11,8 +11,10 @@ static volatile uint16_t rx_buffer_head_;
 static volatile uint16_t rx_buffer_tail_;
 static volatile uint16_t tx_buffer_head_;
 static volatile uint16_t tx_buffer_tail_;
+static volatile bool tx_buffer_is_full_;
 static uint8_t rx_buffer_[SERIAL_RX_BUFFER_SIZE];
 static uint8_t tx_buffer_[SERIAL_TX_BUFFER_SIZE];
+
 
 namespace Periph {
 
@@ -125,29 +127,24 @@ int HardwareSerial::timedRead()
 	return -1;
 }
 
-size_t HardwareSerial::write(uint8_t c)
-{
-	uint16_t tx_buffer_index = (tx_buffer_tail_ + 1) % SERIAL_TX_BUFFER_SIZE;
-
-	while (tx_buffer_index == tx_buffer_head_);
-
-	tx_buffer_[tx_buffer_tail_] = c;
-	tx_buffer_tail_ = tx_buffer_index;
-
-	USART_ITConfig(USART3, USART_IT_TXE, ENABLE);
-	return 1;
-}
-
 size_t HardwareSerial::write(const uint8_t *buffer, size_t size)
 {
-	size_t n = 0;
-	while (size--)
+	size_t i;
+	for (i = 0; i < size; i++)
 	{
-		if (write(*buffer++)) n++;
-		else break;
-	}
+		uint16_t tx_buffer_index = (tx_buffer_head_ + 1) % SERIAL_TX_BUFFER_SIZE;
 
-	return n;
+		// Check if the buffer is full
+		if (tx_buffer_index == tx_buffer_tail_) {
+		  tx_buffer_is_full_ = true;
+		  break;
+		}
+
+		tx_buffer_[tx_buffer_head_] = buffer[i];
+		tx_buffer_head_ = tx_buffer_index;
+	}
+	// Enable the UART transmit interrupt
+	USART_ITConfig(USART3, USART_IT_TXE, ENABLE);
 }
 
 int HardwareSerial::avaiable(void)
@@ -180,11 +177,10 @@ void USART3_IRQHandler(void)
 
     if (USART_GetITStatus(USART3, USART_IT_TXE) != RESET) {
         // Transmit data from Tx buffer
-    	if(tx_buffer_head_ != tx_buffer_tail_)
+    	if(!tx_buffer_is_full_ && tx_buffer_head_ != tx_buffer_tail_)
     	{
-			uint8_t c = tx_buffer_[tx_buffer_tail_];
+			USART_SendData(USART3, tx_buffer_[tx_buffer_tail_]);
 			tx_buffer_tail_ = (tx_buffer_tail_ + 1) % SERIAL_TX_BUFFER_SIZE;
-			USART_SendData(USART3, c);
     	}
     	else
         {
