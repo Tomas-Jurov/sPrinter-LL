@@ -187,8 +187,8 @@ void Control::updateState()	// doplnit prepocet na jednotky SI podla prevodovych
 		: m_sprinter_state.stepper1_current_steps -= m_stepper1.getCurrentSteps();
 
 	m_stepper2.getCurrentDirection() == Periph::Dirs::Enum::Forward
-		? m_sprinter_state.stepper2_current_steps += m_stepper2.getCurrentSteps()
-		: m_sprinter_state.stepper2_current_steps -= m_stepper2.getCurrentSteps();
+		? m_sprinter_state.stepper2_current_steps -= m_stepper2.getCurrentSteps()
+		: m_sprinter_state.stepper2_current_steps += m_stepper2.getCurrentSteps();
 
 	m_sprinter_state.servo1_current_angle = m_servo1.getCurrentAngle();
 	m_sprinter_state.servo2_current_angle = m_servo2.getCurrentAngle();
@@ -200,7 +200,9 @@ void Control::run()
 {
 	if(m_timer.run()) {
 
-		resolveCommands();
+		update();
+		char txt[] = "Fe";
+				Serial.write((uint8_t *)txt, sizeof(txt));
 	}
 
 	updateEngines();
@@ -213,8 +215,6 @@ void Control::run()
 	m_servo2.run();
 
 //	m_suntracker.update();
-
-
 }
 
 // void Control::updatePrintingData()
@@ -320,6 +320,15 @@ void Control::resolveCommands()
 
 
 	}
+}
+
+void Control::update()
+{
+	resolveCommands();
+	updateState();
+
+	//m_ros_bridge.setReturns(m_sprinter_state);
+	//m_ros_bridge.sendReturns();
 }
 
 

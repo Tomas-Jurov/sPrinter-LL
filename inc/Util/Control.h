@@ -81,6 +81,7 @@ public:
 	~Control() = default;
 
 	void run();
+	void update();
 
 	void setWheelsVelocity(int8_t right_vel, int8_t left_vel);
 	void updatePrintingData();
