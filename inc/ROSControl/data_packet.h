@@ -57,8 +57,8 @@ namespace ROSControl
     unsigned short command : 8;
     WheelsVelocity wheels_vel;
     int8_t tilt_vel;
-    int16_t stepper1_speed;
-    int16_t stepper2_speed;
+    uint16_t stepper1_speed;
+    uint16_t stepper2_speed;
     int32_t stepper1_target;
     int32_t stepper2_target;
     uint16_t servo1_angle;

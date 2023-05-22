@@ -31,7 +31,7 @@ Util::State<uint16_t> s_servoState;
  */
 static constexpr uint16_t  s_servoConstant = 500;	 	//first acceptable value in us
 static constexpr uint16_t  s_servoHomePosition[Servos::Size]
-											   = {s_servoConstant + 1135, s_servoConstant + 1045, 0, 0};
+											   = {s_servoConstant + 1140, s_servoConstant + 1050, 0, 0};
 static constexpr uint16_t  s_servoMaxPosition = s_servoConstant + 2000;
 static constexpr uint16_t  s_servoMinPosition = s_servoConstant;
 
