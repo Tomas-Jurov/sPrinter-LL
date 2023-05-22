@@ -8,6 +8,7 @@
 #include "Util/Control.h"
 #include "Application.h"
 #include "Util/Timer.h"
+#include <string>
 
 namespace Util {
 
@@ -97,71 +98,31 @@ Control::Control():
 
 	m_watchdog.start();
 	m_timer.start();
-//	m_servo1.setTargetAngle(500);
-//	m_servo2.setTargetAngle(500);
-//	stop();
-}
 
-Control::~Control(){
-	stop();
 }
 
 
 void Control::setRightSideSpeed(uint8_t speed)
 {
-//	m_engines[0].setCurrentSpeed(m_pids[0].process(speed, m_encoders[0].getAngularSpeedInScale()));
-//	m_engines[1].setCurrentSpeed(m_pids[1].process(speed, m_encoders[1].getAngularSpeedInScale()));
-//	m_engines[2].setCurrentSpeed(m_pids[2].process(speed, m_encoders[2].getAngularSpeedInScale()));
-
-//	m_engines[0].setCurrentSpeed(speed);
-//	m_engines[1].setCurrentSpeed(speed);
-//	m_engines[2].setCurrentSpeed(speed);
 	m_rightEngines.setTargetSpeed(m_pids[0].process(speed, m_rightEncoders.getAngularSpeedInScale()));
 }
 
 void Control::setLeftSideSpeed(uint8_t speed)
 {
 
-//	m_engines[3].setCurrentSpeed(m_pids[3].process(speed, m_encoders[3].getAngularSpeedInScale()));
-//	m_engines[4].setCurrentSpeed(m_pids[4].process(speed, m_encoders[4].getAngularSpeedInScale()));
-//	m_engines[5].setCurrentSpeed(m_pids[5].process(speed, m_encoders[5].getAngularSpeedInScale()));
-
-//	m_engines[3].setCurrentSpeed(speed);
-//	m_engines[4].setCurrentSpeed(speed);
-//	m_engines[5].setCurrentSpeed(speed);
-
-	//m_engines[5].setCurrentSpeed(30);
-	//TRACE("u: %d s: %d y: %d period:%d \n\r",speed, s, y, m_encoders[1].getPeriod());
-	//TRACE("p1: %d  p2:%d  pid:%d\n\r", m_encoders[3].getAngularSpeedInScale(), speed, pid);
-
 	m_leftEngines.setTargetSpeed(m_pids[3].process(speed, m_leftEncoders.getAngularSpeedInScale()));
 }
 
 void Control::setRightSideDirection(Periph::Dirs::Enum dir)
 {
-//	m_engines[0].setCurrentDirection(dir);
-//	m_engines[1].setCurrentDirection(dir);
-//	m_engines[2].setCurrentDirection(dir);
 	m_rightEngines.setTargetDirection(dir);
 }
 
 void Control::setLeftSideDirection(Periph::Dirs::Enum dir)
 {
-//	m_engines[3].setCurrentDirection(dir);
-//	m_engines[4].setCurrentDirection(dir);
-//	m_engines[5].setCurrentDirection(dir);
 	m_leftEngines.setTargetDirection(dir);
 }
 
-void Control::stopEngines()
-{
-//	m_engines[0].setTargetSpeed(m_pids[0].process(0, m_encoders[0].getAngularSpeedInScale()));
-//	m_engines[1].setTargetSpeed(m_pids[1].process(0, m_encoders[1].getAngularSpeedInScale()));
-//	m_engines[2].setTargetSpeed(m_pids[2].process(0, m_encoders[2].getAngularSpeedInScale()));
-//	m_engines[3].setTargetSpeed(m_pids[3].process(0, m_encoders[3].getAngularSpeedInScale()));
-//	m_engines[4].setTargetSpeed(m_pids[4].process(0, m_encoders[4].getAngularSpeedInScale()));
-//	m_engines[5].setTargetSpeed(m_pids[5].process(0, m_encoders[5].getAngularSpeedInScale()));
-}
 
 void Control::updateEngines()
 {
@@ -184,6 +145,33 @@ void Control::updateEncoders()
 	m_encoders[5].update();
 }
 
+void Control::updateSteppers()
+{
+	if (m_stepper1.isBusy())
+	{
+		m_stepper1.run();
+	}
+	else
+	{
+		if (m_stepper1.getState())
+		{
+			m_stepper1.stop();
+		}
+	}
+
+	if (m_stepper2.isBusy())
+		{
+			m_stepper2.run();
+		}
+		else
+		{
+			if (m_stepper2.getState())
+			{
+				m_stepper2.stop();
+			}
+		}
+}
+
 void Control::updateState()	// doplnit prepocet na jednotky SI podla prevodovych charakteristik
 {
 	m_leftEngines.getCurrentDirection() == Periph::Dirs::Enum::Forward
@@ -199,8 +187,8 @@ void Control::updateState()	// doplnit prepocet na jednotky SI podla prevodovych
 		: m_sprinter_state.stepper1_current_steps -= m_stepper1.getCurrentSteps();
 
 	m_stepper2.getCurrentDirection() == Periph::Dirs::Enum::Forward
-		? m_sprinter_state.stepper2_current_steps += m_stepper2.getCurrentSteps()
-		: m_sprinter_state.stepper2_current_steps -= m_stepper2.getCurrentSteps();
+		? m_sprinter_state.stepper2_current_steps -= m_stepper2.getCurrentSteps()
+		: m_sprinter_state.stepper2_current_steps += m_stepper2.getCurrentSteps();
 
 	m_sprinter_state.servo1_current_angle = m_servo1.getCurrentAngle();
 	m_sprinter_state.servo2_current_angle = m_servo2.getCurrentAngle();
@@ -208,79 +196,23 @@ void Control::updateState()	// doplnit prepocet na jednotky SI podla prevodovych
 	m_sprinter_state.suntracker_done = true;	// TODO
 }
 
-void Control::switchMode()
-{
-	stop();
-	
-//	if(s_mode == simulation_mode) {
-//		m_stepper1.setSpeed(20);
-//		m_stepper2.setSpeed(20);
-//	}
-//	else if(s_mode == printing_mode) {
-//		m_stepper1.setSpeed(100);
-//		m_stepper2.setSpeed(100);
-//	}
-}
-
-void Control::stop()
-{
-	stopEngines();
-	m_stepper2.stop();
-	m_stepper1.stop();
-	m_servo1.stop();
-	m_servo2.stop();
-
-}
-
-void Control::start()
-{
-	//m_stepper2.start();
-	//m_stepper1.start();
-	m_servo1.start();
-	m_servo2.start();
-
-}
-
 void Control::run()
 {
-
 	if(m_timer.run()) {
 
 		update();
-
-		//TRACE("%d %d %d %d\n", m_encoders[2].getAngularSpeedInScale(), m_encoders[3].getAngularSpeedInScale(), m_encoders[4].getAngularSpeedInScale(), m_encoders[5].getAngularSpeedInScale());
 	}
-
-
 
 	updateEngines();
 
 	updateEncoders();
 
-	m_suntracker.update();
+	updateSteppers();
 
-	// if(s_mode == printing_mode){
-	// 	m_stepper1.freeRun();
-	// 	m_stepper2.freeRun();
+	m_servo1.run();
+	m_servo2.run();
 
-	// 	task = right;
-	// 	m_stepper1.setTargetSteps(0);
-	// 	m_stepper2.setTargetSteps(0);
-	// }
-	// else if(s_mode == simulation_mode){
-	// 	m_stepper1.run();
-	// 	m_stepper2.run();
-
-	// }
-	// else  {
-		m_stepper1.stop();
-		m_stepper2.stop();
-	// }
-
-	// if(m_watchdog.run()){
-	// 	m_disconnectedTime++;
-	// }
-
+//	m_suntracker.update();
 }
 
 // void Control::updatePrintingData()
@@ -306,9 +238,9 @@ void Control::run()
 // 	else 	m_stepper1.softwareDisable();
 // }
 
-void Control::setWheelsVelocity(int8_t right_speed, int8_t left_speed)
+void Control::setWheelsVelocity(int8_t right_vel, int8_t left_vel)
 {
-  if (right_speed > 0)
+  if (right_vel > 0)
   {
 	  setRightSideDirection(Periph::Dirs::Forward);
   }
@@ -317,7 +249,7 @@ void Control::setWheelsVelocity(int8_t right_speed, int8_t left_speed)
 	  setRightSideDirection(Periph::Dirs::Backward);
   }
 
-  if (left_speed > 0)
+  if (left_vel > 0)
   {
 	  setLeftSideDirection(Periph::Dirs::Forward);
   }
@@ -325,81 +257,76 @@ void Control::setWheelsVelocity(int8_t right_speed, int8_t left_speed)
   {
 	  setLeftSideDirection(Periph::Dirs::Backward);
   }
-	setRightSideSpeed(tool.clamp(abs(right_speed), 0, 80));
-	setLeftSideSpeed(tool.clamp(abs(left_speed), 0, 80));
+	setRightSideSpeed(tool.clamp(abs(right_vel), 0, 80));
+	setLeftSideSpeed(tool.clamp(abs(left_vel), 0, 80));
 }
 
 void Control::resolveCommands()
 {
-	auto recieved_data = m_ros_bridge.getRecieved();
-	
-	// doplnit prepocet z jednotiek SI podla prevodovych charakteristik
-	if (recieved_data.command == ROSControl::Command::SET_SPEED_OF_WHEELS)
-	{
-		setWheelsVelocity(recieved_data.wheels_vel.right, recieved_data.wheels_vel.left);
-	}
-	else if (recieved_data.command == ROSControl::Command::SET_SPEED_OF_LIN_ACTUATOR)
-	{
-		recieved_data.tilt_vel < 0
-		? m_engines[6].setTargetDirection(Periph::Dirs::Forward)
-		: m_engines[6].setTargetDirection(Periph::Dirs::Backward);
-	
-		m_engines[6].setTargetSpeed(tool.clamp(abs(recieved_data.tilt_vel), 0, 80));
-	}
-	else if (recieved_data.command == ROSControl::Command::SET_STEPPER1_SPEED)
-	{
-		m_stepper1.setSpeed(recieved_data.stepper1_speed);
-	}
-	else if (recieved_data.command == ROSControl::Command::SET_STEPPER2_SPEED)
-	{
-		m_stepper2.setSpeed(recieved_data.stepper2_speed);
-	}
-	else if (recieved_data.command == ROSControl::Command::SET_STEPPER1_TARG_STEPS)
-	{
-		recieved_data.stepper1_target > 0
-			? m_stepper1.setCurrentDirection(Periph::Dirs::Forward)
-			: m_stepper1.setCurrentDirection(Periph::Dirs::Backward);
+	auto result = m_ros_bridge.recieveCommands();
 
-		m_stepper1.setTargetSteps(abs(recieved_data.stepper1_target));
-	}
-	else if (recieved_data.command == ROSControl::Command::SET_STEPPER2_TARG_STEPS)
+	if (!result)
 	{
-		recieved_data.stepper2_target > 0
-			? m_stepper2.setCurrentDirection(Periph::Dirs::Forward)
-			: m_stepper2.setCurrentDirection(Periph::Dirs::Backward);
+		auto recieved_data = m_ros_bridge.getRecieved();
 
-		m_stepper2.setTargetSteps(abs(recieved_data.stepper2_target));
-	}
-	else if (recieved_data.command == ROSControl::Command::SET_SERVO1_TARG_ANGLE)
-	{
-		m_servo1.setTargetAngle(recieved_data.servo1_angle);
-	}
-	else if (recieved_data.command == ROSControl::Command::SET_SERVO2_TARG_ANGLE)
-	{
-		m_servo2.setTargetAngle(recieved_data.servo2_angle);
+		if (recieved_data.command == ROSControl::Command::SET_SPEED_OF_WHEELS)
+		{
+			setWheelsVelocity(recieved_data.wheels_vel.right, recieved_data.wheels_vel.left);
+		}
+		else if (recieved_data.command == ROSControl::Command::SET_SPEED_OF_LIN_ACTUATOR)
+		{
+			recieved_data.tilt_vel < 0
+			? m_engines[6].setTargetDirection(Periph::Dirs::Forward)
+			: m_engines[6].setTargetDirection(Periph::Dirs::Backward);
+
+			m_engines[6].setTargetSpeed(tool.clamp(abs(recieved_data.tilt_vel), 0, 80));
+		}
+		else if (recieved_data.command == ROSControl::Command::SET_STEPPER1_SPEED)
+		{
+			m_stepper1.setSpeed(recieved_data.stepper1_speed);
+		}
+		else if (recieved_data.command == ROSControl::Command::SET_STEPPER2_SPEED)
+		{
+			m_stepper2.setSpeed(recieved_data.stepper2_speed);
+		}
+		else if (recieved_data.command == ROSControl::Command::SET_STEPPER1_TARG_STEPS)
+		{
+			recieved_data.stepper1_target > 0
+				? m_stepper1.setCurrentDirection(Periph::Dirs::Forward)
+				: m_stepper1.setCurrentDirection(Periph::Dirs::Backward);
+
+			m_stepper1.setTargetSteps(abs(recieved_data.stepper1_target));
+			m_stepper1.start();
+		}
+		else if (recieved_data.command == ROSControl::Command::SET_STEPPER2_TARG_STEPS)
+		{
+			recieved_data.stepper2_target > 0
+				? m_stepper2.setCurrentDirection(Periph::Dirs::Backward)
+				: m_stepper2.setCurrentDirection(Periph::Dirs::Forward);
+	
+			m_stepper2.setTargetSteps(abs(recieved_data.stepper2_target));
+			m_stepper2.start();
+		}
+		else if (recieved_data.command == ROSControl::Command::SET_SERVO1_TARG_ANGLE)
+		{
+			m_servo1.setTargetAngle(recieved_data.servo1_angle);
+		}
+		else if (recieved_data.command == ROSControl::Command::SET_SERVO2_TARG_ANGLE)
+		{
+			m_servo2.setTargetAngle(recieved_data.servo2_angle);
+		}
+
+
 	}
 }
 
 void Control::update()
 {
-//	m_ros_bridge.recieveCommands();
-//	resolveCommands();
+	resolveCommands();
 
-//	updateState(); // TODO: where?
-//	m_ros_bridge.setReturns(m_sprinter_state);
-//	m_ros_bridge.sendReturns();
-	
-	// 	if(s_mode == vehicle_mode) setWheelsVelocity();
-	// 	else if(s_mode == sunTracker_mode) updateSunTrackerData();
-	// 	else if(s_mode == printing_mode) updatePrintingData();
-	// 	else if(s_mode == simulation_mode) updateSimulation();
-	// }
-	setRightSideSpeed(30);
-	setLeftSideSpeed(80);
-	setRightSideDirection(Periph::Dirs::Backward);
-	setLeftSideDirection(Periph::Dirs::Forward);
-//	m_servo1.test();
-//	m_servo2.test();
+	updateState();
+	m_ros_bridge.setReturns(m_sprinter_state);
+	m_ros_bridge.sendReturns();
 }
 
 

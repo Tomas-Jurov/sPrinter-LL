@@ -1,6 +1,6 @@
 #ifndef SPRINTER_SPRINTER_H
 #define SPRINTER_SPRINTER_H
-#include "../Periph/Usart.h"
+#include "ros_serial.h"
 #include "utility.h"
 #include "data_packet.h"
 #include <memory>
@@ -22,7 +22,7 @@ namespace ROSControl
     uint32_t crc32(const bytePtr data, size_t length);
 
   private:
-    std::unique_ptr<Periph::Usart> serial_port_;
+    std::unique_ptr<ROSControl::ROSSerial> serial_port_;
   public:
     static constexpr uint32_t table[] = {
       0x0, 0x77073096, 0xee0e612c, 0x990951ba, 

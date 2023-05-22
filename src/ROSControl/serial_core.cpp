@@ -3,13 +3,12 @@
 namespace ROSControl {
 
   SerialCore::SerialCore()
-  : serial_port_(std::make_unique<Periph::Usart>(Periph::Usarts::Usart3, 230400))
+  : serial_port_(std::make_unique<ROSControl::ROSSerial>())
   {
   }
 
   bool SerialCore::readRecieved(Recieved *data)
   {
-    serial_port_->flushRead();
     return readDataFromROS((bytePtr)data);
   }
 

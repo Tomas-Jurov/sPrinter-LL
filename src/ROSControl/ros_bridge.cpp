@@ -7,9 +7,9 @@ namespace ROSControl {
   {
   }
 
-  void ROSBridge::recieveCommands()
+  bool ROSBridge::recieveCommands()
   {
-    sprinter_->readRecieved(&recieved_);
+    return sprinter_->readRecieved(&recieved_);
   }
 
   void ROSBridge::sendReturns()

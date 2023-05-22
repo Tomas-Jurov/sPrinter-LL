@@ -8,9 +8,9 @@
 #ifndef UTIL_CONTROL_H_
 #define UTIL_CONTROL_H_
 
+#include <Periph/HardwareSerial.h>
 #include "stm32f4xx.h"
 #include "Periph/Engine.h"
-#include "Periph/Usart.h"
 #include "Periph/Servo.h"
 #include "Periph/Stepper.h"
 #include "Periph/Adc.h"
@@ -78,12 +78,10 @@ class Control {
 
 public:
 	Control();
-	~Control();
+	~Control() = default;
 
-	void update();
 	void run();
-	void stop();
-	void start();
+	void update();
 
 	void setWheelsVelocity(int8_t right_vel, int8_t left_vel);
 	void updatePrintingData();
@@ -91,13 +89,8 @@ public:
 	void taskManager(uint8_t task);
 
 	void updateEncoders();
-	void stopEngines();
 	void updateEngines();
-	void stopServos();
-	void startServos();
-
-	void switchMode();
-	void test();
+	void updateSteppers();
 
 };
 
