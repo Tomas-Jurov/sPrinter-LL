@@ -41,8 +41,8 @@ class Stepper{
 	Util::Timer m_timer;
 
 	uint8_t m_state = 0;
-	uint32_t m_targetSteps;
-	uint32_t m_currentSteps;
+	uint32_t m_targetSteps = 0;
+	uint32_t m_currentSteps = 0;
 public:
 	Stepper(Steppers::Enum id);
 	~Stepper();

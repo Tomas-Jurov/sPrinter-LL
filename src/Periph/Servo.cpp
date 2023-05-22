@@ -29,14 +29,16 @@ Util::State<uint16_t> s_servoState;
  * Working resolution: +-1000 samples
  *
  */
-static constexpr uint16_t  s_servoConstatnt = 500;	 	//first acceptable value in us
-static constexpr uint16_t  s_servoHomePosition = s_servoConstatnt + 1135;
-static constexpr uint16_t  s_servoMaxPosition = s_servoConstatnt + 2000;
-static constexpr uint16_t  s_servoMinPosition = s_servoConstatnt;
+static constexpr uint16_t  s_servoConstant = 500;	 	//first acceptable value in us
+static constexpr uint16_t  s_servoHomePosition[Servos::Size]
+											   = {s_servoConstant + 1135, s_servoConstant + 1045, 0, 0};
+static constexpr uint16_t  s_servoMaxPosition = s_servoConstant + 2000;
+static constexpr uint16_t  s_servoMinPosition = s_servoConstant;
 
 
 
-uint16_t s_servoAngles[Servos::Size] = { 0, 0, 0, 0 };
+uint16_t s_servoAngles[Servos::Size]
+					   = { s_servoHomePosition[Servos::Enum::Servo1], s_servoHomePosition[Servos::Enum::Servo2], 0, 0 };
 
 static Pwms::Enum servosToPwms(Servos::Enum id)
 {
@@ -50,7 +52,7 @@ Servo::Servo(Servos::Enum id) :
 {
 	start();
 	m_timer.start();
-	m_pwm.write(servosToPwms(id), s_servoHomePosition);
+	m_pwm.write(servosToPwms(id), s_servoHomePosition[id]);
 }
 
 Servo::~Servo(){
