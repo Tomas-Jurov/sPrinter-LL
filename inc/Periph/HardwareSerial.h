@@ -13,6 +13,8 @@
 #include "stm32f4xx.h"
 #include "SysTickCounter.h"
 #include <cstddef>
+#include <cstring>
+
 
 namespace Periph {
 
@@ -32,6 +34,7 @@ public:
 	size_t write(const uint8_t *buffer, size_t size);
 	size_t readBytes(uint8_t *buffer, size_t length);
 	int timedRead();
+	void flushTxBuffer(void);
 
 
 	long getElapsedTime(const unsigned long start, const unsigned long end);

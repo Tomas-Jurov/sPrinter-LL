@@ -119,6 +119,10 @@ void Stepper::update()
 		m_step.togglePin();
 		m_currentSteps++;
 	}
+	else if (getState())
+	{
+		stop();
+	}
 }
 
 void Stepper::stop()

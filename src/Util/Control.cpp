@@ -67,9 +67,6 @@ void Control::updateSimulation()
 	m_stepper1.start();
 	m_stepper2.start();
 
-//	m_stepper1.setSpeed(ctrlData.pot);
-//	m_stepper2.setSpeed(ctrlData.pot);
-
 	if(task == up || task == down){
 		if(!m_stepper1.isBusy()){
 			taskManager(nextTask());
@@ -91,7 +88,7 @@ Control::Control():
 	m_servo2(Periph::Servos::Servo2),
 	m_stepper1(Periph::Steppers::Stepper1),
 	m_stepper2(Periph::Steppers::Stepper2),
-	m_timer(Util::Time::FromMilliSeconds(100)),
+	m_timer(Util::Time::FromMilliSeconds(25)),
 	m_watchdog(Util::Time::FromMilliSeconds(1)),
 	m_ros_bridge()
 {
@@ -145,33 +142,6 @@ void Control::updateEncoders()
 	m_encoders[5].update();
 }
 
-void Control::updateSteppers()
-{
-	if (m_stepper1.isBusy())
-	{
-		m_stepper1.run();
-	}
-	else
-	{
-		if (m_stepper1.getState())
-		{
-			m_stepper1.stop();
-		}
-	}
-
-	if (m_stepper2.isBusy())
-		{
-			m_stepper2.run();
-		}
-		else
-		{
-			if (m_stepper2.getState())
-			{
-				m_stepper2.stop();
-			}
-		}
-}
-
 void Control::updateState()	// doplnit prepocet na jednotky SI podla prevodovych charakteristik
 {
 	m_leftEngines.getCurrentDirection() == Periph::Dirs::Enum::Forward
@@ -183,12 +153,12 @@ void Control::updateState()	// doplnit prepocet na jednotky SI podla prevodovych
 		: m_sprinter_state.right_grp_vel = -m_rightEncoders.getAngularSpeed();
 
 	m_stepper1.getCurrentDirection() == Periph::Dirs::Enum::Forward
-		? m_sprinter_state.stepper1_current_steps += m_stepper1.getCurrentSteps()
-		: m_sprinter_state.stepper1_current_steps -= m_stepper1.getCurrentSteps();
+		? m_sprinter_state.stepper1_current_steps = m_stepper1.getCurrentSteps()
+		: m_sprinter_state.stepper1_current_steps = -m_stepper1.getCurrentSteps();
 
 	m_stepper2.getCurrentDirection() == Periph::Dirs::Enum::Forward
-		? m_sprinter_state.stepper2_current_steps -= m_stepper2.getCurrentSteps()
-		: m_sprinter_state.stepper2_current_steps += m_stepper2.getCurrentSteps();
+		? m_sprinter_state.stepper2_current_steps = -m_stepper2.getCurrentSteps()
+		: m_sprinter_state.stepper2_current_steps = m_stepper2.getCurrentSteps();
 
 	m_sprinter_state.servo1_current_angle = m_servo1.getCurrentAngle();
 	m_sprinter_state.servo2_current_angle = m_servo2.getCurrentAngle();
@@ -207,36 +177,14 @@ void Control::run()
 
 	updateEncoders();
 
-	updateSteppers();
+	m_stepper1.run();
+	m_stepper2.run();
 
 	m_servo1.run();
 	m_servo2.run();
 
 //	m_suntracker.update();
 }
-
-// void Control::updatePrintingData()
-// {
-// 	if(ctrlData.x > (JOYSTICK_MIDDLE + KVADRANT_OFFSET)){
-// 		m_stepper2.softwareEnable();
-// 		m_stepper2.setCurrentDirection(Periph::Dirs::Backward);
-// 	}
-// 	else if(ctrlData.x < (JOYSTICK_MIDDLE - KVADRANT_OFFSET)){
-// 		m_stepper2.softwareEnable();
-// 		m_stepper2.setCurrentDirection(Periph::Dirs::Forward);
-// 	}
-// 	else 	m_stepper2.softwareDisable();
-
-// 	if(ctrlData.y > (JOYSTICK_MIDDLE + KVADRANT_OFFSET)){
-// 		m_stepper1.softwareEnable();
-// 		m_stepper1.setCurrentDirection(Periph::Dirs::Forward);
-// 	}
-// 	else if(ctrlData.y < (JOYSTICK_MIDDLE - KVADRANT_OFFSET)){
-// 		m_stepper1.softwareEnable();
-// 		m_stepper1.setCurrentDirection(Periph::Dirs::Backward);
-// 	}
-// 	else 	m_stepper1.softwareDisable();
-// }
 
 void Control::setWheelsVelocity(int8_t right_vel, int8_t left_vel)
 {
@@ -275,7 +223,7 @@ void Control::resolveCommands()
 		}
 		else if (recieved_data.command == ROSControl::Command::SET_SPEED_OF_LIN_ACTUATOR)
 		{
-			recieved_data.tilt_vel < 0
+			recieved_data.tilt_vel > 0
 			? m_engines[6].setTargetDirection(Periph::Dirs::Forward)
 			: m_engines[6].setTargetDirection(Periph::Dirs::Backward);
 
@@ -315,8 +263,10 @@ void Control::resolveCommands()
 		{
 			m_servo2.setTargetAngle(recieved_data.servo2_angle);
 		}
-
-
+		else if (recieved_data.command == ROSControl::Command::RESET)
+		{
+			Serial.flushTxBuffer();
+		}
 	}
 }
 

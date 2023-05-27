@@ -84,14 +84,12 @@ public:
 	void update();
 
 	void setWheelsVelocity(int8_t right_vel, int8_t left_vel);
-	void updatePrintingData();
 	void updateSimulation();
 	void taskManager(uint8_t task);
 
 	void updateEncoders();
 	void updateEngines();
-	void updateSteppers();
-
+	
 };
 
 } /* namespace Util */

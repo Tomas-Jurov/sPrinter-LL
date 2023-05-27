@@ -32,19 +32,19 @@ void Application::run()
 {
 	m_appRunningLed.turnOn();
 
-	pidArgs.Kd = 0.005;
-	pidArgs.Ki = 3;
-	pidArgs.Kp = 1;
-	pidArgs.dt = 0.1;
-	pidArgs.max = 100;
-	pidArgs.min = 0;
+//	pidArgs.Kd = 0.005;
+//	pidArgs.Ki = 3;
+//	pidArgs.Kp = 1;
+//	pidArgs.dt = 0.1;
+//	pidArgs.max = 100;
+//	pidArgs.min = 0;
+//
 
 
-
-	uint8_t MPU_ADDR =  0b1101000 << 1;
-	uint8_t ACCEL_XOUT_H = 0x3B;
-	uint8_t ACCEL_XOUT_L = 0x3C;
-	uint8_t buff[256];
+//	uint8_t MPU_ADDR =  0b1101000 << 1;
+//	uint8_t ACCEL_XOUT_H = 0x3B;
+//	uint8_t ACCEL_XOUT_L = 0x3C;
+//	uint8_t buff[256];
 
 	/* @non-terminating@ */
 	for(;;) {

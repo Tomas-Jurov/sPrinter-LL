@@ -127,6 +127,11 @@ int HardwareSerial::timedRead()
 	return -1;
 }
 
+void HardwareSerial::flushTxBuffer(void)
+{
+	memset(tx_buffer_, 0, SERIAL_TX_BUFFER_SIZE);
+}
+
 size_t HardwareSerial::write(const uint8_t *buffer, size_t size)
 {
 	size_t i;

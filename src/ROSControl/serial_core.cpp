@@ -34,7 +34,7 @@ namespace ROSControl {
     size_t expected_data_size = 0;
     if (data_packet.header.command == SET_SPEED_OF_WHEELS)
     {
-    padding = 0;
+      padding = 0;
       expected_data_size = sizeof(WheelsVelocity);
     }
     else if (data_packet.header.command == SET_SPEED_OF_LIN_ACTUATOR)
@@ -74,6 +74,11 @@ namespace ROSControl {
           + sizeof(int32_t) + sizeof(uint16_t);
       expected_data_size = sizeof(uint16_t);
     }
+    else if (data_packet.header.command == RESET)
+    {
+    	padding = 0;
+    	expected_data_size = 0;
+    }
 
     size_t read_data_bytes = serial_port_->read(data_packet.messsage + header_size, data_size + crc_size); 
 
@@ -97,7 +102,8 @@ namespace ROSControl {
     }
 
     memcpy((bytePtr)data, data_packet.messsage + header_size - sizeof(uint8_t), sizeof(uint8_t));
-    memcpy((bytePtr)data + sizeof(uint8_t) + padding, data_packet.messsage + header_size, data_size);
+    if (data_size > 0)
+      memcpy((bytePtr)data + sizeof(uint8_t) + padding, data_packet.messsage + header_size, data_size);
 
     return 0;
   }

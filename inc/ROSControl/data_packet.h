@@ -32,7 +32,8 @@ namespace ROSControl
     SET_STEPPER2_TARG_STEPS =   0x05,
     SET_SERVO1_TARG_ANGLE =     0x06,
     SET_SERVO2_TARG_ANGLE =     0x07,
-    START_SUNTRACKING =         0x08
+    START_SUNTRACKING =         0x08,
+	RESET =                     0x09
   };
 
   struct WheelsVelocity
