@@ -56,6 +56,15 @@ static uint16_t findMaxIntensity()
 	return max;
 }
 
+bool Suntracker::run()
+{
+	if (m_enabled)
+	{
+		return update();
+	}
+	else return true;
+}
+
 bool Suntracker::update()
 {
 	const uint8_t Step = 3;
@@ -66,6 +75,7 @@ bool Suntracker::update()
 
 		if(Intensity[Kvadrants::O] + FinnalPrecisionOffset > findMaxIntensity()) {
 			//TRACE("Suntracker calibration OK\n\r");
+			disable();
 			return true;
 		}
 		else {
@@ -101,9 +111,16 @@ bool Suntracker::update()
 			m_servo1.addAngle(DirServo1*Step);
 			m_servo2.addAngle(DirServo2*Step);
 		}
-	}
+	}	
 }
 
+void Suntracker::enable()
+{
+	m_enabled = true;
+}
 
-
+void Suntracker::disable()
+{
+	m_enabled = false;
+}
 }

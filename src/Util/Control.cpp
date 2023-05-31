@@ -186,7 +186,7 @@ void Control::run()
 	m_servo1.run();
 	m_servo2.run();
 
-//	m_suntracker.update();
+	m_suntracker.run();
 }
 
 void Control::setWheelsVelocity(int8_t right_vel, int8_t left_vel)
@@ -273,6 +273,10 @@ void Control::resolveCommands()
 		else if (recieved_data.command == ROSControl::Command::SET_SERVO2_TARG_ANGLE)
 		{
 			m_servo2.setTargetAngle(recieved_data.servo2_angle);
+		}
+		else if (recieved_data.command == ROSControl::Command::START_SUNTRACKING)
+		{
+			m_suntracker.enable();
 		}
 		else if (recieved_data.command == ROSControl::Command::RESET)
 		{

@@ -44,12 +44,16 @@ class Suntracker {
 	};
 	Periph::Servo 	m_servo1, m_servo2;
 	Util::Timer m_timer;
+	bool m_enabled;
 
 	void measure();
 public:
 	Suntracker();
 
+	bool run();
 	bool update();
+	void enable();
+	void disable();
 
 };
 
