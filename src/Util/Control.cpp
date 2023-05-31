@@ -99,15 +99,15 @@ Control::Control():
 }
 
 
-void Control::setRightSideSpeed(uint8_t speed)
+void Control::computeRightSideSpeed()
 {
-	m_rightEngines.setTargetSpeed(m_pids[0].process(speed, m_rightEncoders.getAngularSpeedInScale()));
+	m_rightEngines.setCurrentSpeed(m_pids[0].process(m_rightEngines.getRefSpeed(), m_rightEncoders.getAngularSpeedInScale()));
 }
 
-void Control::setLeftSideSpeed(uint8_t speed)
+void Control::computeLeftSideSpeed()
 {
 
-	m_leftEngines.setTargetSpeed(m_pids[3].process(speed, m_leftEncoders.getAngularSpeedInScale()));
+	m_leftEngines.setCurrentSpeed(m_pids[3].process(m_leftEngines.getRefSpeed(), m_leftEncoders.getAngularSpeedInScale()));
 }
 
 void Control::setRightSideDirection(Periph::Dirs::Enum dir)
@@ -123,6 +123,9 @@ void Control::setLeftSideDirection(Periph::Dirs::Enum dir)
 
 void Control::updateEngines()
 {
+	computeRightSideSpeed();
+	computeLeftSideSpeed();
+
 	m_engines[0].update();
 	m_engines[1].update();
 	m_engines[2].update();
@@ -188,7 +191,11 @@ void Control::run()
 
 void Control::setWheelsVelocity(int8_t right_vel, int8_t left_vel)
 {
-  if (right_vel > 0)
+  if (right_vel == 0)
+  {
+	  setRightSideDirection(m_rightEngines.getCurrentDirection());
+  }
+  else if (right_vel > 0)
   {
 	  setRightSideDirection(Periph::Dirs::Forward);
   }
@@ -197,7 +204,11 @@ void Control::setWheelsVelocity(int8_t right_vel, int8_t left_vel)
 	  setRightSideDirection(Periph::Dirs::Backward);
   }
 
-  if (left_vel > 0)
+  if (left_vel == 0)
+  {
+  	  setLeftSideDirection(m_leftEngines.getCurrentDirection());
+  }
+  else if (left_vel > 0)
   {
 	  setLeftSideDirection(Periph::Dirs::Forward);
   }
@@ -205,8 +216,8 @@ void Control::setWheelsVelocity(int8_t right_vel, int8_t left_vel)
   {
 	  setLeftSideDirection(Periph::Dirs::Backward);
   }
-	setRightSideSpeed(tool.clamp(abs(right_vel), 0, 80));
-	setLeftSideSpeed(tool.clamp(abs(left_vel), 0, 80));
+	m_rightEngines.setRefSpeed(tool.clamp(abs(right_vel), 0, 80));
+	m_leftEngines.setRefSpeed(tool.clamp(abs(left_vel), 0, 80));
 }
 
 void Control::resolveCommands()

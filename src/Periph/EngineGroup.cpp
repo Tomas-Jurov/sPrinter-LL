@@ -37,6 +37,22 @@ void EngineGroup::setTargetDirection(Periph::Dirs::Enum direction)
 		m_engines[n]->setTargetDirection(direction);
 }
 
+void EngineGroup::setCurrentSpeed(uint8_t speed)
+{
+	for(uint8_t n = 0; n < EngineGroup::NumOfEngines; ++n)
+		m_engines[n]->setTargetSpeed(speed);
+}
+
+void EngineGroup::setRefSpeed(uint8_t speed)
+{
+	m_refSpeed = speed;
+}
+
+uint8_t EngineGroup::getRefSpeed()
+{
+	return m_refSpeed;
+}
+
 void EngineGroup::update()
 {
 	for(uint8_t n = 0; n < EngineGroup::NumOfEngines; ++n)

@@ -69,8 +69,8 @@ class Control {
 	ROSControl::ROSBridge m_ros_bridge;
 	ROSControl::Returns m_sprinter_state;
 
-	void setRightSideSpeed(uint8_t speed);
-	void setLeftSideSpeed(uint8_t speed);
+	void computeRightSideSpeed();
+	void computeLeftSideSpeed();
 	void setRightSideDirection(Periph::Dirs::Enum dir);
 	void setLeftSideDirection(Periph::Dirs::Enum dir);
 	void resolveCommands();

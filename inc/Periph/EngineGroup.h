@@ -38,9 +38,15 @@ public:
 
 	void setTargetSpeed(uint8_t speed);
 	void setTargetDirection(Periph::Dirs::Enum direction);
+	void setCurrentSpeed(uint8_t speed);
+	void setRefSpeed(uint8_t speed);
+	uint8_t getRefSpeed();
 	Periph::Dirs::Enum getCurrentDirection() const;
 
 	void update();
+
+private:
+	uint8_t m_refSpeed = 0;
 };
 
 }
