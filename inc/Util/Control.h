@@ -43,8 +43,8 @@ class Control {
 	};
 
 	const Util::PidArgs_t m_pidArgs = {
-		.Kp = 0.4,
-		.Ki = 1.8,
+		.Kp = 0.5,
+		.Ki = 0.003,
 		.Kd = 0.00005,
 		.dt = 0.1,
 		.min = 0,
@@ -75,6 +75,7 @@ class Control {
 	void setLeftSideDirection(Periph::Dirs::Enum dir);
 	void resolveCommands();
 	void updateState();
+	void updateMonitorData();
 
 public:
 	Control();

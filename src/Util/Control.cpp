@@ -39,6 +39,23 @@ static uint8_t nextTask() {
 	return task;
 }
 
+typedef struct
+{
+	uint8_t leftEncAngSpeed;
+	uint8_t rightEncAngSpeed;
+	uint8_t leftEncAngSpeedInScale;
+	uint8_t rightEncAngSpeedInScale;
+	uint8_t encoderSpeed[6];
+	uint8_t leftEngRefSpeed;
+	uint8_t rightEngRefSpeed;
+	uint8_t leftEngTargSpeed;
+	uint8_t rightEngTargSpeed;
+	uint8_t rightEngCurrSpeed;
+	uint8_t leftEngCurrSpeed;
+} monitor_t;
+
+static monitor_t s_data;
+
 void Control::taskManager(uint8_t l_task)
 {
 	switch(l_task){
@@ -82,8 +99,8 @@ void Control::updateSimulation()
 Control::Control():
 	m_rightEngines(&m_engines[0], &m_engines[1], &m_engines[2]),
 	m_leftEngines(&m_engines[3], &m_engines[4], &m_engines[5]),
-	m_rightEncoders(&m_encoders[0], &m_encoders[2], nullptr, 2),		// currently, only these encoders are working
-	m_leftEncoders(&m_encoders[4], &m_encoders[5], nullptr, 2),		// normally, there should be 3 encoders for each side
+	m_rightEncoders(&m_encoders[2], nullptr, nullptr, 1),		// currently, only these encoders are working
+	m_leftEncoders(&m_encoders[4], nullptr, nullptr, 1),		// normally, there should be 3 encoders for each side
 	m_servo1(Periph::Servos::Servo1),
 	m_servo2(Periph::Servos::Servo2),
 	m_stepper1(Periph::Steppers::Stepper1),
@@ -101,13 +118,26 @@ Control::Control():
 
 void Control::computeRightSideSpeed()
 {
-	m_rightEngines.setCurrentSpeed(m_pids[0].process(m_rightEngines.getRefSpeed(), m_rightEncoders.getAngularSpeedInScale()));
+
+	if (m_rightEngines.getRefSpeed() > 10)
+	{
+		m_rightEngines.setTargetSpeed(m_pids[0].process(m_rightEngines.getRefSpeed(), m_rightEncoders.getAngularSpeed()));
+	} else
+	{
+		m_rightEngines.setTargetSpeed(0);
+	}
 }
 
 void Control::computeLeftSideSpeed()
 {
 
-	m_leftEngines.setCurrentSpeed(m_pids[3].process(m_leftEngines.getRefSpeed(), m_leftEncoders.getAngularSpeedInScale()));
+	if (m_leftEngines.getRefSpeed() > 10)
+	{
+		m_leftEngines.setTargetSpeed(m_pids[3].process(m_leftEngines.getRefSpeed(), m_leftEncoders.getAngularSpeed()));
+	} else
+	{
+		m_leftEngines.setTargetSpeed(0);
+	}
 }
 
 void Control::setRightSideDirection(Periph::Dirs::Enum dir)
@@ -169,6 +199,24 @@ void Control::updateState()	// doplnit prepocet na jednotky SI podla prevodovych
 	m_sprinter_state.suntracker_done = true;	// TODO
 }
 
+void Control::updateMonitorData()
+{
+	s_data.leftEncAngSpeed = m_leftEncoders.getAngularSpeed();
+	s_data.rightEncAngSpeed = m_rightEncoders.getAngularSpeed();
+	s_data.leftEncAngSpeedInScale = m_leftEncoders.getAngularSpeedInScale();
+	s_data.rightEncAngSpeedInScale = m_rightEncoders.getAngularSpeedInScale();
+	for (int i = 0; i < 6; i++)
+	{
+		s_data.encoderSpeed[i] = m_encoders[i].getAngularSpeed();
+	}
+	s_data.leftEngRefSpeed = m_leftEngines.getRefSpeed();
+	s_data.rightEngRefSpeed = m_rightEngines.getRefSpeed();
+	s_data.leftEngTargSpeed = m_engines[3].getTargetSpeed();
+	s_data.rightEngTargSpeed = m_engines[0].getTargetSpeed();
+	s_data.leftEngCurrSpeed = m_engines[3].getCurrentSpeed();
+	s_data.rightEngCurrSpeed = m_engines[0].getCurrentSpeed();
+}
+
 void Control::run()
 {
 	if(m_timer.run()) {
@@ -179,6 +227,8 @@ void Control::run()
 	updateEngines();
 
 	updateEncoders();
+
+	updateMonitorData();
 
 	m_stepper1.run();
 	m_stepper2.run();
