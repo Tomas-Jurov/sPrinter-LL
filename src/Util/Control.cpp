@@ -197,6 +197,7 @@ void Control::updateState()	// doplnit prepocet na jednotky SI podla prevodovych
 	m_sprinter_state.servo2_current_angle = m_servo2.getCurrentAngle();
 
 	m_sprinter_state.suntracker_done = true;	// TODO
+  m_sprinter_state.tilt_is_on_point = m_tilt_is_on_point;
 }
 
 void Control::updateMonitorData()
@@ -278,6 +279,11 @@ void Control::resolveCommands()
 	{
 		auto recieved_data = m_ros_bridge.getRecieved();
 
+    if (recieved_data.command != ROSControl::Command::SET_SPEED_OF_LIN_ACTUATOR)
+    {
+      m_tilt_is_on_point = false;
+    }
+
 		if (recieved_data.command == ROSControl::Command::SET_SPEED_OF_WHEELS)
 		{
 			setWheelsVelocity(recieved_data.wheels_vel.right, recieved_data.wheels_vel.left);
@@ -287,6 +293,15 @@ void Control::resolveCommands()
 			recieved_data.tilt_vel > 0
 			? m_engines[6].setTargetDirection(Periph::Dirs::Forward)
 			: m_engines[6].setTargetDirection(Periph::Dirs::Backward);
+
+      if (recieved_data.tilt_vel == 0)
+      {
+        m_tilt_is_on_point = true;
+      }
+      else 
+      {
+        m_tilt_is_on_point = false;
+      }
 
 			m_engines[6].setTargetSpeed(tool.clamp(abs(recieved_data.tilt_vel), 0, 80));
 		}

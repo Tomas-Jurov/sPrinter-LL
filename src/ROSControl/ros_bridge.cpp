@@ -31,5 +31,6 @@ namespace ROSControl {
     returns_.servo1_current_angle = sprinter_state.servo1_current_angle;
     returns_.servo2_current_angle = sprinter_state.servo2_current_angle;
     returns_.suntracker_done = sprinter_state.suntracker_done;
+    returns_.tilt_is_on_point = sprinter_state.tilt_is_on_point;
   }
 }

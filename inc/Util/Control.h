@@ -68,6 +68,7 @@ class Control {
 	Util::Tool 	tool;
 	ROSControl::ROSBridge m_ros_bridge;
 	ROSControl::Returns m_sprinter_state;
+  bool m_tilt_is_on_point = false;
 
 	void computeRightSideSpeed();
 	void computeLeftSideSpeed();
